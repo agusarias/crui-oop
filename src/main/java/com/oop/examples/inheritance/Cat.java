@@ -21,6 +21,21 @@ public class Cat extends Animal {
     return new Picture(100, 100, "jpg");
   }
 
+// orders for the cat to follow
+@Override
+  public void followOrder(String order) {
+    switch (order.toLowerCase()) {
+      case "sit":
+          System.out.println(name + " sits... and walks away");
+          break;
+      case "stay":
+          System.out.println(name + " ignores me and walks away..");
+          break;
+      default:
+          System.out.println(name + " looks at you with.. disgust?");
+    }
+}
+
   // Method specific to Cat class
   public void play() {
     System.out.println(name + " is playing with a ball!");

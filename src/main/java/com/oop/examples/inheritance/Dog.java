@@ -21,6 +21,24 @@ public class Dog extends Animal {
     return new Picture(100, 120, "jpg");
   }
 
+// orders for the dog to follow
+@Override
+  public void followOrder(String order) {
+    switch (order.toLowerCase()) {
+        case "sit":
+            System.out.println(name + " is now sitting :D!");
+            break;
+        case "stay":
+            System.out.println(name + " is staying stil..");
+            break;
+        case "fetch":
+            fetch();
+            break;
+        default:
+            System.out.println(name + " tilts head with a look of confusion.");
+    }
+}
+
   // Method specific to Dog class
   public void fetch() {
     System.out.println(name + " is fetching the ball!");
