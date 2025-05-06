@@ -62,3 +62,5 @@ src/
 ## Examples
 
 Each concept is demonstrated through practical examples with corresponding test cases. The examples are designed to be simple yet comprehensive, making it easy to understand the core OOP principles. 
+
+EDIT JORGE
