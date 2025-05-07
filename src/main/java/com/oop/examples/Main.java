@@ -42,6 +42,11 @@ public class Main {
 
     Familiy family = new Familiy(originalMembers);
     System.out.println(family.getMembers());
+
+    long mayores = originalMembers.stream()
+    .filter(p -> p.getAge() >= 18)
+    .count();
+    System.out.println("Cantidad de personas mayores de edad: " + mayores);
   }
 
   private static void runEncapsulationExample() {
