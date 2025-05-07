@@ -25,6 +25,8 @@ public class Main {
     Main.runPolymorphismExample();
 
     Main.takePictures();
+
+    Main.AnimalOrders();
   }
 
   private static void runCompositionExample() {
@@ -32,14 +34,7 @@ public class Main {
     System.out.println("\n=== Composition Example ===");
     Person person1 = new Person("Jorge Gomez", 30, "jorge@example.com");
     Person person2 = new Person("Ana Garcia", 25, "ana@example.com");
-    Person person3 = new Person("Raul Garcia", 0, "raul@example.com");
-    Person person4 = new Person("Jorge Marinoni", 43, "jorge@sharktech.com.ar");
-    Person person5 = new Person("Otro Garcia", 0, "otro@example.com");
-    Person person6 = new Person("Otro Garci 22", 0, "otro22@example.com");
-    Person persona7 = new Person("Cosme Fulanito", 33, "raul@example.com");
-    List<Person> originalMembers =
-        new ArrayList<>(Arrays.asList(person1, person2, person3, person4, person5, person6, persona7));
-
+    List<Person> originalMembers = new ArrayList<>(Arrays.asList(person1, person2));
     Familiy family = new Familiy(originalMembers);
     System.out.println(family.getMembers());
   }
@@ -81,6 +76,7 @@ public class Main {
     animal = new Cat("Filomena", 2, "Black");
     animal.makeSound(); // Calls Cat's implementation
     animal.sleep(); // Calls Animal's implementation
+    
   }
 
   private static void takePictures() {
@@ -102,5 +98,16 @@ public class Main {
     for (Fotografiable fotografiable : fotografiables) {
       fotografiable.takePicture();
     }
+  }
+
+  private static void AnimalOrders() {
+    Dog dog = new Dog("Buddy", 3, "Golden Retriever");
+    Cat cat = new Cat("Alekei", 5, "Multicolor");
+
+    dog.followOrder("sit");
+    dog.followOrder("fetch");
+
+    cat.followOrder("sit");
+    cat.followOrder("meow");
   }
 }
