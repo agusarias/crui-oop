@@ -8,8 +8,10 @@ import com.oop.examples.composition.Familiy;
 import com.oop.examples.encapsulation.Person;
 import com.oop.examples.inheritance.Dog;
 import com.oop.examples.shared.Fotografiable;
+import com.oop.examples.tasks.Task;
 import com.oop.examples.inheritance.Animal;
 import com.oop.examples.inheritance.Cat;
+import com.oop.examples.carpentry.Carpentry;
 
 public class Main {
   public static void main(String[] args) {
@@ -25,6 +27,7 @@ public class Main {
     Main.runPolymorphismExample();
 
     Main.takePictures();
+    Main.carpentry();
   }
 
   private static void runCompositionExample() {
@@ -36,9 +39,8 @@ public class Main {
     Person person4 = new Person("Jorge Marinoni", 43, "jorge@sharktech.com.ar");
     Person person5 = new Person("Otro Garcia", 0, "otro@example.com");
     Person person6 = new Person("Otro Garci 22", 0, "otro22@example.com");
-    Person persona7 = new Person("Cosme Fulanito", 33, "raul@example.com");
     List<Person> originalMembers =
-        new ArrayList<>(Arrays.asList(person1, person2, person3, person4, person5, person6, persona7));
+        new ArrayList<>(Arrays.asList(person1, person2, person3, person4, person5, person6));
 
     Familiy family = new Familiy(originalMembers);
     System.out.println(family.getMembers());
@@ -102,5 +104,13 @@ public class Main {
     for (Fotografiable fotografiable : fotografiables) {
       fotografiable.takePicture();
     }
+  }
+  private static void carpentry() {
+    // Carpentry example
+    System.out.println("\n=== Carpentry Example ===\n");
+    Person personCarpentry = new Person("Smith John", 30, "smith@gmail.com");
+    Task taskCarpentry = new Task(false, "Build a table");
+    Carpentry carpentry = new Carpentry(personCarpentry, taskCarpentry);
+    carpentry.getInfoTaskCarpentry();
   }
 }
