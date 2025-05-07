@@ -26,4 +26,8 @@ public abstract class Animal implements Fotografiable {
   public int getAge() {
     return age;
   }
+  
+  public void followOrder(String order) {
+    System.out.println(this.name + " doesn't understand the order.");
+  }
 }
