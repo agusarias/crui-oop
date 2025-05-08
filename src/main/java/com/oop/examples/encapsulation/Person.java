@@ -7,12 +7,14 @@ public class Person implements Fotografiable {
   private int age;
   private String email;
   private String name;
+  private String lastName;
 
   // Constructor
-  public Person(String name, int age, String email) {
+  public Person(String name, int age, String email, String lastName) {
     this.name = name;
     this.age = age;
     this.email = email;
+    this.lastName = lastName;
   }
 
   @Override
@@ -28,6 +30,15 @@ public class Person implements Fotografiable {
   public void setName(String name) {
     if (name != null && !name.trim().isEmpty()) {
       this.name = name;
+    }
+  }
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    if (lastName != null && !lastName.trim().isEmpty()) {
+      this.lastName = lastName;
     }
   }
 
@@ -54,12 +65,13 @@ public class Person implements Fotografiable {
   // Public method to display person information
   public void displayInfo() {
     System.out.println("Name: " + name);
+    System.out.println("Last Name: " + lastName);
     System.out.println("Age: " + age);
     System.out.println("Email: " + email);
   }
 
   @Override
   public String toString() {
-    return "Person [name=" + name + ", age=" + age + ", email=" + email + "]\n";
+    return "Person [name=" + name + ", lastName=" + lastName + ",  age=" + age + ", email=" + email + "]\n";
   }
 }
