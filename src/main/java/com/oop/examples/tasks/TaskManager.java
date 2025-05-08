@@ -54,4 +54,14 @@ public class TaskManager {
       System.err.println("Error writing to file: " + e.getMessage());
     }
   }
+  public void imprimirTareas() {
+    if (tasks.isEmpty()) {
+        System.out.println("No hay tareas cargadas.");
+    } else {
+        System.out.println("Lista de tareas:");
+        for (Task task : tasks) {
+            System.out.println("- " + task.getDescription() + " [" + (task.isComplete() ? "completa" : "pendiente") + "]");
+        }
+    }
+}
 }
