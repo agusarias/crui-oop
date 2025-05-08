@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import com.oop.examples.tasks.Task;
 import com.oop.examples.tasks.TaskManager;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -49,6 +48,23 @@ class TaskManagerTest {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             assertEquals("[ ] Task 1", reader.readLine());
             assertEquals("[X] Task 2", reader.readLine());
+        }
+    }
+
+    @Test
+    void testExportEmptyTaskListToFile() throws IOException {
+        // Arrange
+        TaskManager taskManager = new TaskManager(null); // Pasamos null porque no usamos el repositorio
+    
+        // Act
+        taskManager.exportsTasksToFile(TEST_FILE_PATH);
+    
+        // Assert
+        File file = new File(TEST_FILE_PATH);
+        assertTrue(file.exists(), "El archivo no fue creado");
+    
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            assertEquals(null, reader.readLine(), "El archivo no está vacío");
         }
     }
 }
