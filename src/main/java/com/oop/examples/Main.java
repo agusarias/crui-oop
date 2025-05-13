@@ -108,5 +108,13 @@ public class Main {
     for (Fotografiable fotografiable : fotografiables) {
       fotografiable.takePicture();
     }
+
+    Photographer photographer = new Photographer("Daiana");
+    System.out.println("\n Photographer taking pictures ");
+    
+    for (Fotografiable fotografiable : fotografiables) {
+      photographer.takePicture(fotografiable);
+    }
+    
   }
 }
