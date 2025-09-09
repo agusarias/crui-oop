@@ -73,93 +73,35 @@ public class DND {
     }
   }
 
-  static class Hero {
-    private String name;
-    private String type; // elf, human, dwarf, warrior
-    private int baseAttack;
-    private int baseDefense;
-    private int health;
-    private Weapon weapon;
-    private Armour armour;
-    private Random random = new Random();
+  static class Dice {
+    private static Dice instance;
+    private Random random;
 
-    public Hero(String name, String type, int baseAttack, int baseDefense, int health) {
-      this.name = name;
-      this.type = type;
-      this.baseAttack = baseAttack;
-      this.baseDefense = baseDefense;
-      this.health = health;
+    private Dice() {
+      this.random = new Random();
     }
 
-    public void setWeapon(Weapon w) {
-      this.weapon = w;
-    }
-
-    public void setArmour(Armour a) {
-      this.armour = a;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    public int getHealth() {
-      return health;
-    }
-
-    public boolean isAlive() {
-      return health > 0;
-    }
-
-    public int getAttack() {
-      int weaponAtk = (weapon != null) ? weapon.getAttack() : 0;
-      if ("warrior".equals(type)) {
-        weaponAtk += 2;
+    static Dice getInstance() {
+      if (instance == null) {
+        instance = new Dice();
       }
-      return baseAttack + weaponAtk;
+      return instance;
     }
 
-    public int getDefense() {
-      int armourDef = (armour != null) ? armour.getDefense() : 0;
-      return baseDefense + armourDef;
-    }
-
-    public int takeDamage(int damage) {
-      int mitigated = Math.max(1, damage - (getDefense() / 2));
-      health = Math.max(0, health - mitigated);
-      return mitigated;
-    }
-
-    public int hit(Enemy target) {
-      int atk = getAttack();
-      if (random.nextInt(100) < 10) { // 10% critical hit
-        atk += 8;
-      }
-      // Dragon es resistente a los no elfos
-      if ("dragon".equals(target.getKind()) && !"elf".equals(type)) {
-        atk -= 4;
-      }
-      atk = Math.max(1, atk);
-      int dealt = target.takeDamage(atk);
-      return dealt;
+    public static boolean chance(int percent) {
+      return getInstance().random.nextInt(100) < percent;
     }
   }
 
-  static class Enemy {
+  abstract static class Character {
     private String name;
-    private String kind; // goblin, orc, dragon...
+    private String kind; // elf, human, dwarf, warrior
     private int baseAttack;
     private int baseDefense;
     private int health;
-    private Weapon weapon;
-    private Armour armour;
-    private Random rng = new Random();
+    private Random random = new Random();
 
-    public Enemy(String name, String kind, int baseAttack, int baseDefense, int health) {
+    public Character(String name, String kind, int baseAttack, int baseDefense, int health) {
       this.name = name;
       this.kind = kind;
       this.baseAttack = baseAttack;
@@ -183,6 +125,50 @@ public class DND {
       return health > 0;
     }
 
+    public int getAttack() {
+      return baseAttack;
+    }
+
+    public int getDefense() {
+      return baseDefense;
+    }
+
+    public void setHealth(int health) {
+      this.health = health;
+    }
+
+    public int getAdditionalAttack(Character target) {
+      return 0;
+    }
+
+    public int getAdditionalDefense(Character aggresor) {
+      return 0;
+    }
+
+    public int takeDamage(Character aggresor, int attack) {
+      int defense = getDefense() + getAdditionalDefense(aggresor);
+      int mitigated = Math.max(1, Math.max(1, attack) - (defense / 2));
+      this.setHealth(Math.max(0, this.getHealth() - mitigated));
+      return mitigated;
+    }
+
+    public int hit(Character target) {
+      int attack = getAttack() + getAdditionalAttack(target);
+      if (Dice.chance(10)) { // 10% critical hit
+        attack += 8;
+      }
+      return target.takeDamage(this, attack);
+    }
+  }
+
+  static class Hero extends Character {
+    private Weapon weapon;
+    private Armour armour;
+
+    public Hero(String name, String kind, int baseAttack, int baseDefense, int health) {
+      super(name, kind, baseAttack, baseDefense, health);
+    }
+
     public void setWeapon(Weapon w) {
       this.weapon = w;
     }
@@ -191,50 +177,57 @@ public class DND {
       this.armour = a;
     }
 
-    public int getAttack() {
-      int weaponAtk = (weapon != null) ? weapon.getAttack() : 0;
-      int atk = baseAttack + weaponAtk;
+    public int getAdditionalAttack(Character target) {
+      int base = this.weapon != null ? this.weapon.getAttack() : 0;
+      if ("warrior".equals(super.getKind())) {
+        return base + 2;
+      }
+      if ("dragon".equals(target.getKind()) && !"elf".equals(target.getKind())) {
+        base += 4;
+      }
+      return base;
+    }
 
-      // Modificadores por tipo
-      if ("orc".equals(kind)) {
-        atk += 2;
-      } else if ("goblin".equals(kind)) {
-        // goblin más débil pero esquiva a veces
-        if (rng.nextInt(100) < 15) {
-          atk += 5;
+    public int getAdditionalDefense(Character aggresor) {
+      int base = this.armour != null ? this.armour.getDefense() : 0;
+      if ("warrior".equals(super.getKind())) {
+        return base + 2;
+      }
+      return base;
+    }
+  }
+
+  static class Enemy extends Character {
+    public Enemy(String name, String kind, int baseAttack, int baseDefense, int health) {
+      super(name, kind, baseAttack, baseDefense, health);
+    }
+
+    public int getAdditionalAttack(Character target) {
+      int base = super.getAttack();
+      if ("orc".equals(super.getKind())) {
+        base += 2;
+        if (Dice.chance(20)) {
+          base += 5;
         }
-      } else if ("dragon".equals(kind)) {
-        atk += 4;
       }
-      return atk;
+      if ("goblin".equals(super.getKind())) {
+        base += 1;
+        if (Dice.chance(15)) {
+          base += 5;
+        }
+      }
+      if ("dragon".equals(super.getKind())) {
+        base += 4;
+      }
+      return base;
     }
 
-    public int getDefense() {
-      int armourDef = (armour != null) ? armour.getDefense() : 0;
-      int def = baseDefense + armourDef;
-
-      // Defensa especial hardcodeada (candidato a Strategy o State)
-      if ("dragon".equals(kind)) {
-        def += 3;
+    public int getAdditionalDefense(Character aggresor) {
+      int base = super.getDefense();
+      if ("dragon".equals(super.getKind())) {
+        base += 4;
       }
-      return def;
-    }
-
-    public int takeDamage(int damage) {
-      int mitigated = Math.max(1, damage - (getDefense() / 2));
-      health = Math.max(0, health - mitigated);
-      return mitigated;
-    }
-
-    public int hit(Hero target) {
-      int atk = getAttack();
-      // Los orcos pueden tener un ataque extra el 20% de las veces
-      if ("orc".equals(kind) && rng.nextInt(100) < 20) {
-        atk += 6;
-      }
-      atk = Math.max(1, atk);
-      int dealt = target.takeDamage(atk);
-      return dealt;
+      return base;
     }
   }
 
