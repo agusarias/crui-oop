@@ -14,6 +14,10 @@ public class Folders {
     public Folder(String name) {
       this.name = name;
     }
+
+    public String getName() {
+      return this.name;
+    }
   }
 
   class File {
