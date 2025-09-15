@@ -3,6 +3,9 @@ package com.oop.examples;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import org.junit.jupiter.api.Test;
+
+import com.crui.oop.Main;
+
 import org.junit.jupiter.api.DisplayName;
 
 /** Test class for the Main application. */

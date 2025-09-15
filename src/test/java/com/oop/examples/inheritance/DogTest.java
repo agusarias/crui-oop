@@ -5,6 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.crui.oop.inheritance.Animal;
+import com.crui.oop.inheritance.Dog;
+
 import org.junit.jupiter.api.DisplayName;
 
 /** Test class for Dog. */
