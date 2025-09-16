@@ -1,8 +1,8 @@
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import com.oop.examples.tasks.Task;
-import com.oop.examples.tasks.TaskManager;
+import com.crui.oop.tasks.TaskManager;
+import com.crui.oop.tasks.Task;
 
 import java.io.BufferedReader;
 import java.io.File;

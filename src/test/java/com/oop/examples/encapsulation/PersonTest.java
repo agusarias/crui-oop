@@ -1,10 +1,12 @@
 package com.oop.examples.encapsulation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.crui.oop.encapsulation.Person;
+
 import org.junit.jupiter.api.DisplayName;
 
 /** Test class for Person. */
