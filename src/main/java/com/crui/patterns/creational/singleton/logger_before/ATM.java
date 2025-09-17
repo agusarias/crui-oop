@@ -1,3 +1,5 @@
+package com.crui.patterns.creational.singleton.logger_before;
+
 public class ATM {
     private final Logger logger = Logger.getInstance();
 

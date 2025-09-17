@@ -1,3 +1,5 @@
+package com.crui.patterns.creational.singleton.logger_before;
+
 public class Logger {
     private static Logger logger;
 

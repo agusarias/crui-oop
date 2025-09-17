@@ -1,3 +1,5 @@
+package com.crui.patterns.creational.singleton.logger_before;
+
 public class LoggerMain {
     public static void main(String[] args) {
         Logger logger1 = Logger.getInstance();
