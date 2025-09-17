@@ -1,0 +1,24 @@
+public class LoggerMain {
+    public static void main(String[] args) {
+        Logger logger1 = Logger.getInstance();
+        Logger logger2 = Logger.getInstance();
+
+        if (logger1 == logger2) {
+            System.out.println("No importa su contenido, ocupan el mismo espacio en memoria");
+            System.out.println("A continuación veremos que podemos usar logger1 y logger 2 en su misma instancia");
+        }
+
+        logger1.info("--- Simulación del Cajero ---");
+
+        ATM atm = new ATM();
+
+        atm.startTransaction("Diego");
+        atm.makeDeposit(100000);
+        atm.withdrawMoney(250000); 
+        atm.makeDeposit(-10000); 
+        atm.endTransaction();
+
+        logger2.info("--- Verificación Final ---");
+        logger1.info("Simulación terminada.");
+    }
+}
