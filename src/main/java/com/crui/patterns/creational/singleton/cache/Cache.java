@@ -5,10 +5,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Cache {
+  private static Cache instancia;
+
   private Map<String, String> datos;
 
-  public Cache() {
-    this.datos = new HashMap<>();
+  private Cache() {
+    this.datos = new HashMap<String, String>();
+  }
+
+  public static Cache getInstancia() {
+    if (Cache.instancia == null) {
+      Cache.instancia = new Cache(); // Lazy load
+    }
+    return Cache.instancia;
   }
 
   public void set(String key, String value) {
