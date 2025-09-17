@@ -1,0 +1,6 @@
+Ejemplo de cafeteria con el patron decorator:
+- Se creo la clase abstraca Bebida con los metedos getDescripcion y getCosto.
+- Se crearon dos clases que utilizan esa interface "CafeSimple" (con devoluciones base) y "DecoradorBebida" que es el
+  decorador base el cual encapsula el objeto.
+- Se crearon diferentes tipos de decoradores concretos, ej: Leche, Azucar.
+- Luego en el Main creamos un cafe simple de base y luego le vamos aplicando los diferentes decoradores.
