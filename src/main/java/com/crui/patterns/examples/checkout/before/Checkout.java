@@ -3,10 +3,19 @@ package com.crui.patterns.examples.checkout.before;
 import java.util.*;
 
 /**
- * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * Contestar a continuación las siguientes preguntas: 
+ * - Qué patrón de diseño podés identificar en el
+ * código dado? 
+ * Decorator( decoran los extras, envoltorioRegalo y envvioExpress, para incorporar sus costos al total), 
+ * strategy ()
+ * adapter ()
+ * 
+ * - Qué patrón de diseño podrías agregar para mejorar el código?
+ * 
+ *  adapter en la api para poder usarlo
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
+ * adapter en linea 
  */
 public class Checkout {
 
@@ -24,19 +33,27 @@ public class Checkout {
     orden.incluirEnvoltorio(true);
     orden.incluirEnvioExpress(true);
 
+    // patron observer
     orden.addListener(new EmailListener());
     orden.addListener(new AnalyticsListener());
 
-    String paymentType = "card"; // puede ser "cash", "card", "mercado-pago"
-    MedioDePago medioDePago;
-    if ("card".equalsIgnoreCase(paymentType)) {
-      medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
-    } else {
-      medioDePago = new PagoEfectivo();
-    }
-    orden.setMedioDePago(medioDePago);
+//implementar adapter y  strategy
+String paymentType = "mercado-pago"; // puede ser "cash", "card", "mercado-pago"
+MedioDePago medioDePago;
 
-    // Muestra totales y paga
+if ("card".equalsIgnoreCase(paymentType)) {
+    medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
+} else if ("cash".equalsIgnoreCase(paymentType)) {
+    medioDePago = new PagoEfectivo();
+} else if ("mercado-pago".equalsIgnoreCase(paymentType)) {
+    medioDePago = new PagoMercadoPagoAdapter(new MercadoPagoAPI());
+} else {
+    throw new IllegalArgumentException("Medio de pago no soportado");
+}
+
+orden.setMedioDePago(medioDePago);  
+
+    // Muestra totales y pagos
     orden.printSummary();
     orden.pagar();
   }
@@ -69,8 +86,8 @@ public class Checkout {
   static class Carrito {
     private final List<Producto> items = new ArrayList<>();
 
-    public void add(Producto p) {
-      items.add(p);
+    public void add(Producto producto) {
+      items.add(producto);
     }
 
     public List<Producto> getItems() {
@@ -79,7 +96,7 @@ public class Checkout {
 
     public double subtotal() {
       double s = 0;
-      for (Producto p : items) s += p.getPrecio();
+      for (Producto producto : items) s += producto.getPrecio();
       return s;
     }
 
@@ -98,7 +115,7 @@ public class Checkout {
   static class EmailListener implements OrdenEventListener {
     @Override
     public void onPaid(Orden order) {
-      System.out.println("[Email] Enviando comprobante a cliente. Total: $" + order.total());
+      System.out.println("[Email] Enviando comprobante a cliente. Total: $" + order. calcularTotal());
     }
   }
 
@@ -111,23 +128,20 @@ public class Checkout {
   }
 
   static class Orden {
-    private final Carrito carrito;
-    private final List<OrdenEventListener> listeners = new ArrayList<>();
-    private MedioDePago paymentGateway;
+      private final Carrito carrito;
+      private final List<OrdenEventListener> listeners = new ArrayList<>();
+      private MedioDePago paymentGateway;
+      private boolean envoltorioRegalo = false;
+      private boolean envioExpress = false;
 
-    // “Extras” modelados con flags (candidato a DECORATOR)
-    private boolean envoltorioRegalo; // +$5
-    private boolean envioExpress; // +$10
+      public Orden(Carrito carrito) {
+        this.carrito = carrito;
+      }
 
-    public Orden(Carrito carrito) {
-      this.carrito = carrito;
-    }
-
-    public Carrito getCarrito() {
-      return carrito;
-    }
-
-    public void addListener(OrdenEventListener l) {
+      public Carrito getCarrito() {
+        return carrito;
+      }
+      public void addListener(OrdenEventListener l) {
       listeners.add(l);
     }
 
@@ -143,31 +157,106 @@ public class Checkout {
       this.envioExpress = v;
     }
 
-    public double total() {
-      double total = carrito.subtotal();
-      // Costo extra hardcodeado (refactor -> DECORATOR sobre Product o sobre un "PricedComponent")
-      if (envoltorioRegalo) total += 5.0;
-      if (envioExpress) total += 10.0;
-      return total;
+    // “Extras” modelados con flags (candidato a DECORATOR) es por ser extras
+    interface OrdenComponent {
+    double calcularTotal();
+    String getDescripcion();
+}
+
+    static class OrdenBase implements OrdenComponent {
+      private final Carrito carrito;
+
+      public OrdenBase(Carrito carrito) {
+        this.carrito = carrito;
     }
 
-    public void printSummary() {
+    @Override
+    public double calcularTotal() {
+        return carrito.subtotal();
+    }
+
+    @Override
+    public String getDescripcion() {
+        return carrito.toString();
+    }
+}
+
+abstract static class OrdenDecorator implements OrdenComponent {
+    protected OrdenComponent orden;
+
+    public OrdenDecorator(OrdenComponent orden) {
+        this.orden = orden;
+    }
+
+    @Override
+    public double calcularTotal() {
+        return orden.calcularTotal();
+    }
+
+    @Override
+    public String getDescripcion() {
+        return orden.getDescripcion();
+    }
+}
+
+static class EnvoltorioRegalo extends OrdenDecorator {
+    public EnvoltorioRegalo(OrdenComponent orden) {
+      super(orden);
+    }
+
+    @Override
+    public double calcularTotal() {
+      return super.calcularTotal() + 5.0;
+    }
+
+    @Override
+    public String getDescripcion() {
+      return super.getDescripcion() + " + Envoltorio de regalo";
+    }
+}
+
+static class EnvioExpress extends OrdenDecorator {
+    public EnvioExpress(OrdenComponent orden) {
+        super(orden);
+    }
+
+    @Override
+    public double calcularTotal() {
+      return super.calcularTotal() + 10.0;
+    }
+
+    @Override
+    public String getDescripcion() {
+       return super.getDescripcion() + " + Envío Express";
+    }
+}
+  public double calcularTotal() {
+    OrdenComponent base = new OrdenBase(carrito);
+      if (envoltorioRegalo) base = new EnvoltorioRegalo(base);
+      if (envioExpress) base = new EnvioExpress(base);
+      return base.calcularTotal();
+      }
+
+  public void printSummary() {
+      OrdenComponent base = new OrdenBase(carrito);
+      if (envoltorioRegalo) base = new EnvoltorioRegalo(base);
+      if (envioExpress) base = new EnvioExpress(base);
+
       System.out.println("=== ORDER SUMMARY ===");
       System.out.println("Items: " + carrito);
-      System.out.println("Subtotal: $" + carrito.subtotal());
-      System.out.println("Envoltorio regalo: " + (envoltorioRegalo ? "Si (+$5)" : "No"));
-      System.out.println("Envio express: " + (envioExpress ? "Si (+$10)" : "No"));
-      System.out.println("TOTAL: $" + total());
+      System.out.println("Detalle: " + base.getDescripcion());
+      System.out.println("TOTAL: $" + base.calcularTotal());
     }
+
 
     public void pagar() {
       if (paymentGateway == null) {
         System.out.println("No hay gateway de pago configurado.");
         return;
       }
-      boolean ok = paymentGateway.pay(total());
+      boolean ok = paymentGateway.pay(calcularTotal());
       if (ok) {
-        System.out.println("Pago exitoso por $" + total());
+        System.out.println("Pago exitoso por $" + calcularTotal());
         notifyPaid();
       } else {
         System.out.println("Pago rechazado.");
@@ -217,12 +306,28 @@ public class Checkout {
 
   // ===================== API externa =====================
 
-  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */
+  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla. se puede aplicar Adapter*/
+  // Simulación de la API externa MercadoPagoAPI
   static class MercadoPagoAPI {
-    public boolean runPayment(int amountInCents) {
-      System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
-      // Lógica ficticia: acepta todo hasta 15.000 centavos (150.00)
-      return amountInCents <= 15000;
+      // Simula el pago, retorna true si el monto es menor o igual a 20000 centavos (200.00)
+      public boolean runPayment(int amountInCents) {
+          System.out.println("[MercadoPagoAPI] Procesando pago de $" + (amountInCents / 100.0));
+          return amountInCents <= 20000;//acepta hasta 200 dolares
+      }
+  }
+  
+  // ADAPTER para integrar la API externa con nuestra interfaz de pagos
+static class PagoMercadoPagoAdapter implements MedioDePago {
+    private final MercadoPagoAPI mpApi;
+
+    public PagoMercadoPagoAdapter(MercadoPagoAPI mpApi) {
+        this.mpApi = mpApi;
+    }
+
+    @Override
+    public boolean pay(double amount) {
+        int amountInCents = (int) (amount * 100);
+        return mpApi.runPayment(amountInCents);
     }
   }
 }
