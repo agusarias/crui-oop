@@ -16,6 +16,7 @@ import java.util.*;
  * RESPUESTA: Decorator (para los extras de la orden, como envoltorio y envío express)
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
+ * RESPUESTA: En progreso...
  */
 public class Checkout {
 
