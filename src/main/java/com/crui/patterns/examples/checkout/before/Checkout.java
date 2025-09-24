@@ -2,15 +2,20 @@ package com.crui.patterns.examples.checkout.before;
 
 import java.util.*;
 
+import com.crui.patterns.examples.checkout.before.Checkout.MedioDePago;
+
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
  * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
  * 1. Patrón Observer
- * Implementado en: OrdenEventListener, EmailListener y AnalyticsListener.
+ * Implementado en: OrdenEventListener, EmailListener y AnalyticsListener. 
+ * Notifica a múltiples objetos cuando se completa un pago.
  * 2. Patrón Strategy
  * Implementado en: MedioDePago, PagoTarjeta y PagoEfectivo.
+ * Permite diferentes algoritmos/estrategias de pago
  * 3. Patrón Adapter
- * Podría implementarse para integrar la clase MercadoPagoAPI con la interfaz MedioDePago.
+ * Implemente para integrar la clase MercadoPagoAPI con la interfaz MedioDePago.
+ * Es útil para integrar MercadoPagoAPI, ya que resuelve un problema inmediato y permite usar la API externa sin modificarla.
  **/
  
 public class Checkout {
@@ -245,4 +250,45 @@ public class Checkout {
         return mercadoPagoAPI.runPayment(amountInCents);
     }
   }
+
+  interface ComponentePreciado {
+    double getPrecio();
+    String getDescripcion();
+}
+
+static class OrdenBase implements ComponentePreciado {
+    private final Carrito carrito;
+    
+    public OrdenBase(Carrito carrito) {
+        this.carrito = carrito;
+    }
+    
+    @Override
+    public double getPrecio() {
+        return carrito.subtotal();
+    }
+    
+    @Override
+    public String getDescripcion() {
+        return carrito.toString();
+    }
+}
+
+static class EnvoltorioRegalo implements ComponentePreciado {
+    private final ComponentePreciado componente;
+    
+    public EnvoltorioRegalo(ComponentePreciado componente) {
+        this.componente = componente;
+    }
+    
+    @Override
+    public double getPrecio() {
+        return componente.getPrecio() + 5.0;
+    }
+    
+    @Override
+    public String getDescripcion() {
+        return componente.getDescripcion() + " + Envoltorio Regalo";
+    }
+}
 }
