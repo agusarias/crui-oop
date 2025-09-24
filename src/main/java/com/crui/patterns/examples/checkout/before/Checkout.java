@@ -3,10 +3,16 @@ package com.crui.patterns.examples.checkout.before;
 import java.util.*;
 
 /**
- * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * Contestar a continuación las siguientes preguntas: 
+ * - Qué patrón de diseño podés identificar en el código dado? 
+ * 
+ * El patron  que se puede identificar en el codigo es el patron Strategy, ya que se tiene una interfaz MedioDePago que define un metodo pay y diferentes implementaciones de esta interfaz (PagoEfectivo, PagoTarjeta) que proporcionan diferentes formas de pago. 
+ * tambien se puede identificar el patron Observer, ya que la clase Orden tiene una lista  (OrdenEventListener) que son notificados cuando se realiza un pago exitoso. Esto permite poder agregar (como enviar un email o registrar en analytics) sin modificar la clase Orden.
+ * 
+ * - Qué patrón de diseño podrías agregar para mejorar el código?
+ * El patron Decorator se podria agregar para mejorar el codigo, ya que se tiene la necesidad de agregar funcionalidades adicionales a la clase Producto (como envoltorio de regalo y envio express) sin modificar la clase original.
  *
- * <p>Implementar UN patrón adicional para mejorar el código.
+ * -Implementar UN patrón adicional para mejorar el código.
  */
 public class Checkout {
 
@@ -224,5 +230,45 @@ public class Checkout {
       // Lógica ficticia: acepta todo hasta 15.000 centavos (150.00)
       return amountInCents <= 15000;
     }
+  }
+}
+
+//Implementacion de el patron decorator para los estras envoltorio de regalo y envio express
+
+interface ProductoExtra {
+  String getDescripcion();
+  double getPrecio();
+}
+
+class ProductoConExtra implements ProductoExtra {
+  private final Producto producto;
+  private final String descripcionExtra;
+  private final double precioExtra;
+
+  public ProductoConExtra(Producto producto, String descripcionExtra, double precioExtra) {
+    this.producto = producto;
+    this.descripcionExtra = descripcionExtra;
+    this.precioExtra = precioExtra;
+  }
+
+  @Override
+  public String getDescripcion() {
+    return producto.getNombre() + " + " + descripcionExtra;
+  }
+
+  @Override
+  public double getPrecio() {
+    return producto.getPrecio() + precioExtra;
+  }
+}
+
+static class ProductoEnvoltorio extends ProductoConExtra {
+  public ProductoEnvoltorio(Producto producto) {
+    super(producto, "Envoltorio de regalo", 5.0);
+  }
+}
+static class ProductoEnvioExpress extends ProductoConExtra {
+  public ProductoEnvioExpress(Producto producto) {
+    super(producto, "Envio express", 10.0);
   }
 }
