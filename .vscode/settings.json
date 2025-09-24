@@ -1,0 +1,13 @@
+{
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "emeraldwalk.runonsave": {
+    "enabled": true,
+    "commands": [
+      {
+        "cmd": "mvn googleformatter:format"
+      }
+    ]
+  }
+}
