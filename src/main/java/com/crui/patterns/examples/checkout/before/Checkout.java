@@ -227,7 +227,6 @@ public class Checkout {
 
   // ===================== API externa =====================
 
-  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */
   static class MercadoPagoAPI {
     public boolean runPayment(int amountInCents) {
       System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
@@ -250,45 +249,3 @@ public class Checkout {
         return mercadoPagoAPI.runPayment(amountInCents);
     }
   }
-
-  interface ComponentePreciado {
-    double getPrecio();
-    String getDescripcion();
-}
-
-static class OrdenBase implements ComponentePreciado {
-    private final Carrito carrito;
-    
-    public OrdenBase(Carrito carrito) {
-        this.carrito = carrito;
-    }
-    
-    @Override
-    public double getPrecio() {
-        return carrito.subtotal();
-    }
-    
-    @Override
-    public String getDescripcion() {
-        return carrito.toString();
-    }
-}
-
-static class EnvoltorioRegalo implements ComponentePreciado {
-    private final ComponentePreciado componente;
-    
-    public EnvoltorioRegalo(ComponentePreciado componente) {
-        this.componente = componente;
-    }
-    
-    @Override
-    public double getPrecio() {
-        return componente.getPrecio() + 5.0;
-    }
-    
-    @Override
-    public String getDescripcion() {
-        return componente.getDescripcion() + " + Envoltorio Regalo";
-    }
-}
-}
