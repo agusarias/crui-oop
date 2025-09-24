@@ -230,7 +230,7 @@ public class Checkout {
     }
   }
 
-  // adding an adapter for metodo de pago -> it currently does not support nor implement MedioDePago for it to work/detect it (bc it doesn't if we place "mercado-pago" as an option) like the other methods(PagoEfectivo n PagoTarjeta)
+// adding an adapter for metodo de pago -> it currently does not support nor implement MedioDePago for it to work/detect it (bc it doesn't if we place "mercado-pago" as an option) like the other methods("cash" n "card")
   static class MercadoPagoAdapter implements MedioDePago {
       private final MercadoPagoAPI api;
 
