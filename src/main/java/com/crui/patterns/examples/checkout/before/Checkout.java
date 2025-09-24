@@ -5,9 +5,14 @@ import java.util.*;
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
  * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
- *
- * <p>Implementar UN patrón adicional para mejorar el código.
- */
+ * 1. Patrón Observer
+ * Implementado en: OrdenEventListener, EmailListener y AnalyticsListener.
+ * 2. Patrón Strategy
+ * Implementado en: MedioDePago, PagoTarjeta y PagoEfectivo.
+ * 3. Patrón Adapter
+ * Podría implementarse para integrar la clase MercadoPagoAPI con la interfaz MedioDePago.
+ **/
+ 
 public class Checkout {
 
   public static void main(String[] args) {
@@ -115,7 +120,7 @@ public class Checkout {
     private final List<OrdenEventListener> listeners = new ArrayList<>();
     private MedioDePago paymentGateway;
 
-    // “Extras” modelados con flags (candidato a DECORATOR)
+    // "Extras" modelados con flags (candidato a DECORATOR)
     private boolean envoltorioRegalo; // +$5
     private boolean envioExpress; // +$10
 
@@ -223,6 +228,21 @@ public class Checkout {
       System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
       // Lógica ficticia: acepta todo hasta 15.000 centavos (150.00)
       return amountInCents <= 15000;
+    }
+  }
+
+  static class MercadoPagoAdapter implements MedioDePago {
+    private final MercadoPagoAPI mercadoPagoAPI;
+    
+    public MercadoPagoAdapter() {
+        this.mercadoPagoAPI = new MercadoPagoAPI();
+    }
+    
+    @Override
+    public boolean pay(double amount) {
+        // Convertir pesos a centavos para la API externa
+        int amountInCents = (int) (amount * 100);
+        return mercadoPagoAPI.runPayment(amountInCents);
     }
   }
 }
