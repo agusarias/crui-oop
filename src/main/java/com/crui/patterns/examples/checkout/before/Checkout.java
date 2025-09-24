@@ -3,10 +3,16 @@ package com.crui.patterns.examples.checkout.before;
 import java.util.*;
 
 /**
- * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * Contestar a continuación las siguientes preguntas:
+ * - Qué patrón de diseño podés identificar en el código dado?
+ *   - El patrón de diseño que se puede identificar es el patrón **Observer**. Esto se puede ver en la implementación de los listeners de eventos en la clase `Orden`, donde se notifica a los listeners cuando se realiza un pago.
+ *   - También se puede identificar el patrón **Strategy** en la forma en que se manejan los diferentes métodos de pago (efectivo, tarjeta, MercadoPago) a través de la interfaz `MedioDePago`.
+ * 
+ * - Qué patrón de diseño podrías agregar para mejorar el código?
+ *   - Se podría agregar el patrón **Decorator** para manejar los "extras" de la orden (envoltorio de regalo y envío exprés) de una manera más flexible y escalable.
+ *   - También se podria considerar el patrón **Adapter** para integrar la API externa de MercadoPago, permitiendo que el sistema utilice esta API sin modificar su código interno.
  *
- * <p>Implementar UN patrón adicional para mejorar el código.
+ * Implementar UN patrón adicional para mejorar el código.
  */
 public class Checkout {
 
@@ -212,6 +218,18 @@ public class Checkout {
     private String last4() {
       if (cardNumber == null || cardNumber.length() < 4) return "????";
       return cardNumber.substring(cardNumber.length() - 4);
+    }
+  }
+
+  // ===================== ADAPTER (Pago MercadoPago) =====================
+  static class PagoMercadoPago implements MedioDePago {
+    private final MercadoPagoAPI api = new MercadoPagoAPI();
+
+    @Override
+    public boolean pay(double amount) {
+      int amountInCents = (int) (amount * 100);
+      System.out.println("[MercadoPago] Redirigiendo a API externa...");
+      return api.runPayment(amountInCents);
     }
   }
 
