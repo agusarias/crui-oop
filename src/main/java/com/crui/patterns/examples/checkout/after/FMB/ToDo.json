@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "Decorator",
+        "description": "Orden necesita un decorator que permita modificar el total del carrito más posibles extra por envoltorio y/o por envio express",
+        "status": "In Process",
+        "assignedTo": "FMB"
+    },
+    {
+        "id": 2,
+        "title": "OrdenListener",
+        "description": "Orden posee un par de prints en su código base. Se puede modificar las funciones para disparar un obesrver.",
+        "status": "Pending",
+        "assignedTo": "FMB"
+    },
+    {
+        "id": 3,
+        "title": "API",
+        "description": "Checkout no usa MercadoPagoAPI. MercadoPago puede procesar un máximo de 150 por request. Aplicado en nueva clase PagoMercadoPago, no implementado realmente.",
+        "status": "In Process",
+        "assignedTo": "FMB"
+    }
+]
