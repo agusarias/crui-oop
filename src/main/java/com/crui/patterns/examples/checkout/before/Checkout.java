@@ -2,8 +2,6 @@ package com.crui.patterns.examples.checkout.before;
 
 import java.util.*;
 
-import com.crui.patterns.examples.checkout.before.Checkout.MedioDePago;
-
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
  * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
@@ -249,3 +247,7 @@ public class Checkout {
         return mercadoPagoAPI.runPayment(amountInCents);
     }
   }
+}
+
+
+
