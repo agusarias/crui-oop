@@ -225,4 +225,14 @@ public class Checkout {
       return amountInCents <= 15000;
     }
   }
-}
+
+   // -------------------- ADAPTER (Pago con MercadoPago) --------------------
+  static class PagoMercadoPago implements MedioDePago {
+    private final MercadoPagoAPI mpApi = new MercadoPagoAPI();
+
+    @Override
+    public boolean pay(double amount) {
+      int amountInCents = (int) (amount * 100);
+      return mpApi.runPayment(amountInCents);
+    }
+  }
