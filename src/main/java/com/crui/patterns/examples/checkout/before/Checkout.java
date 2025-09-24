@@ -27,15 +27,19 @@ public class Checkout {
     orden.addListener(new EmailListener());
     orden.addListener(new AnalyticsListener());
 
-    String paymentType = "card"; // puede ser "cash", "card", "mercado-pago"
+    String paymentType = "mercado-pago"; // puede ser "cash", "card", "mercado-pago"
     MedioDePago medioDePago;
-    if ("card".equalsIgnoreCase(paymentType)) {
-      medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
-    } else {
-      medioDePago = new PagoEfectivo();
-    }
-    orden.setMedioDePago(medioDePago);
 
+    if ("card".equalsIgnoreCase(paymentType)) {
+        medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
+    } else if ("mercado-pago".equalsIgnoreCase(paymentType)) {
+        //using the adapter :)
+        medioDePago = new MercadoPagoAdapter(new MercadoPagoAPI());
+    } else {
+        medioDePago = new PagoEfectivo();
+    }
+
+    orden.setMedioDePago(medioDePago);
     // Muestra totales y paga
     orden.printSummary();
     orden.pagar();
@@ -224,5 +228,27 @@ public class Checkout {
       // Lógica ficticia: acepta todo hasta 15.000 centavos (150.00)
       return amountInCents <= 15000;
     }
+  }
+
+  // adding an adapter for metodo de pago -> it currently does not support nor implement MedioDePago for it to work/detect it (bc it doesn't if we place "mercado-pago" as an option) like the other methods(PagoEfectivo n PagoTarjeta)
+  static class MercadoPagoAdapter implements MedioDePago {
+      private final MercadoPagoAPI api;
+
+      public MercadoPagoAdapter(MercadoPagoAPI api) {
+          this.api = api;
+      }
+      @Override
+      public boolean pay(double amount) {
+          int amountInCents = (int) (amount * 100);
+          boolean success = api.runPayment(amountInCents);
+
+          if (success) {
+              System.out.println("[Adapter] Pago exitoso con MercadoPago: $" + amount);
+          } else {
+              System.out.println("[Adapter] Pago rechazado por MercadoPago: $" + amount);
+          }
+
+          return success;
+      }
   }
 }
