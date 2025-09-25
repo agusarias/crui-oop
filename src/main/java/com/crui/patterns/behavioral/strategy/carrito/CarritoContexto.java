@@ -1,4 +1,4 @@
-package com.crui.patterns.behavioral.strategy;
+package com.crui.patterns.behavioral.strategy.carrito;
 
 
 import java.util.ArrayList;

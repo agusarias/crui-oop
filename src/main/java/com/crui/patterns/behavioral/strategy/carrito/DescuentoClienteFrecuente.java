@@ -1,4 +1,4 @@
-package com.crui.patterns.behavioral.strategy;
+package com.crui.patterns.behavioral.strategy.carrito;
 
 public class DescuentoClienteFrecuente implements DescuentoInterfaz {
     private static final double MONTO_DESCUENTO = 50.0;
