@@ -5,9 +5,17 @@ import java.util.*;
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
  * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
- *
- * <p>Implementar UN patrón adicional para mejorar el código.
- */
+ * 1. Patrón Observer
+ * Implementado en: OrdenEventListener, EmailListener y AnalyticsListener. 
+ * Notifica a múltiples objetos cuando se completa un pago.
+ * 2. Patrón Strategy
+ * Implementado en: MedioDePago, PagoTarjeta y PagoEfectivo.
+ * Permite diferentes algoritmos/estrategias de pago
+ * 3. Patrón Adapter
+ * Implemente para integrar la clase MercadoPagoAPI con la interfaz MedioDePago.
+ * Es útil para integrar MercadoPagoAPI, ya que resuelve un problema inmediato y permite usar la API externa sin modificarla.
+ **/
+ 
 public class Checkout {
 
   public static void main(String[] args) {
@@ -115,7 +123,7 @@ public class Checkout {
     private final List<OrdenEventListener> listeners = new ArrayList<>();
     private MedioDePago paymentGateway;
 
-    // “Extras” modelados con flags (candidato a DECORATOR)
+    // "Extras" modelados con flags (candidato a DECORATOR)
     private boolean envoltorioRegalo; // +$5
     private boolean envioExpress; // +$10
 
@@ -217,7 +225,6 @@ public class Checkout {
 
   // ===================== API externa =====================
 
-  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */
   static class MercadoPagoAPI {
     public boolean runPayment(int amountInCents) {
       System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
@@ -225,4 +232,22 @@ public class Checkout {
       return amountInCents <= 15000;
     }
   }
+
+  static class MercadoPagoAdapter implements MedioDePago {
+    private final MercadoPagoAPI mercadoPagoAPI;
+    
+    public MercadoPagoAdapter() {
+        this.mercadoPagoAPI = new MercadoPagoAPI();
+    }
+    
+    @Override
+    public boolean pay(double amount) {
+        // Convertir pesos a centavos para la API externa
+        int amountInCents = (int) (amount * 100);
+        return mercadoPagoAPI.runPayment(amountInCents);
+    }
+  }
 }
+
+
+
