@@ -1,0 +1,27 @@
+package com.crui.patterns.creational.singleton.logger_before;
+
+public class Logger {
+    private static Logger logger;
+
+    private Logger() {
+    }
+
+    public static Logger getInstance() {
+        if (logger == null) {
+            logger = new Logger();
+        }
+        return logger;
+    }
+
+    public void info(String mensaje) {
+        System.out.println("[INFO] " + mensaje);
+    }
+
+    public void error(String mensaje) {
+        System.err.println("[ERROR] " + mensaje);
+    }
+
+    public void warning(String mensaje) {
+        System.out.println("[WARNING] " + mensaje);
+    }
+}
