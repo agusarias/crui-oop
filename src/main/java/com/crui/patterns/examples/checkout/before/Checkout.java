@@ -4,18 +4,25 @@ import java.util.*;
 
 /**
  * Contestar a continuación las siguientes preguntas: 
+ * 
  * - Qué patrón de diseño podés identificar en el
  * código dado? 
- * Decorator( decoran los extras, envoltorioRegalo y envvioExpress, para incorporar sus costos al total), 
- * strategy ()
- * adapter ()
+ * los que el profe puso jjajaja
+ * 
+ * Decorator: Permite agregar “extras” a una orden, como el envoltorio de regalo o el envío express, sin modificar la clase base de la orden. 
+ *se toma la orden base y se le van agregando funcionalidades/costos. No cambia la orden original.
+ * 
+ * strategy: nos deja elegir el medio de pago sin cambiar la orden.
+ * hay varias formas de pago y la orden no le importa cual es. Si se agregan pagos nuevos no necesita cambar la orden. 
+ *
+ * adapter: nos deja usar la api externa que es incompatible con nuestra interfaz de pagos, sin modificar la api externa ni nuestra interfaz.
  * 
  * - Qué patrón de diseño podrías agregar para mejorar el código?
  * 
- *  adapter en la api para poder usarlo
+ *  agregar adapter en la api para poder usarlo.
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
- * adapter en linea 
+ * adapter agregado en api en el codigo. 
  */
 public class Checkout {
 
