@@ -3,10 +3,27 @@ package com.crui.patterns.examples.checkout.before;
 import java.util.*;
 
 /**
- * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * Contestar a continuación las siguientes preguntas:
  *
- * <p>Implementar UN patrón adicional para mejorar el código.
+ * <p>- Qué patrón de diseño podés identificar en el código dado?
+ *
+ * <p>* Strategy: Los medios de pago se implementan usando una interfaz para generalizar su
+ * funcionamiento. Esto permite que agregar medios de pago en el futuro sea mas sencillo, y no
+ * implique modificar la lógica en todo el código.
+ *
+ * <p>* Observer: Cuando una orden está paga, se quiere notificar al cliente y guardar metricas.
+ * Para eso se utiliza el observer, evitando poner lógica de notificación y métricas en Order, lo
+ * que implicaria romper el Single Responsability Principle.
+ *
+ * <p>- Qué patrones de diseño podrías agregar para mejorar el código?
+ *
+ * <p>Adapter: Para incluir Mercado Pago como medio de pago, hay que adaptar la API a la interfaz
+ * MedioDePago.
+ *
+ * <p>Factory: La creación de las instancias de MedioDePago requiere configuración y va a crecer con
+ * el tiempo. Conviene centralizar esa lógica en una clase factory.
+ *
+ * <p>Implementar uno o más de esos patrones.
  */
 public class Checkout {
 
@@ -20,25 +37,46 @@ public class Checkout {
     carrito.add(libro);
     carrito.add(mouse);
 
-    Orden orden = new Orden(carrito);
-    orden.incluirEnvoltorio(true);
-    orden.incluirEnvioExpress(true);
+    IOrden orden = new Orden(carrito);
+
+    if (true) {
+      orden = new OrdenConEnvoltorioRegalo(orden);
+    }
+
+    if (orden.calcularTotal() > 10) {
+      orden = new OrdenConEnvioExpress(orden);
+    }
 
     orden.addListener(new EmailListener());
     orden.addListener(new AnalyticsListener());
+    orden.addListener(new LoggingListener());
 
     String paymentType = "card"; // puede ser "cash", "card", "mercado-pago"
-    MedioDePago medioDePago;
-    if ("card".equalsIgnoreCase(paymentType)) {
-      medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
-    } else {
-      medioDePago = new PagoEfectivo();
-    }
+
+    MedioDePago medioDePago = MedioDePagoFactory.create(paymentType);
     orden.setMedioDePago(medioDePago);
 
     // Muestra totales y paga
-    orden.printSummary();
-    orden.pagar();
+    double total = orden.calcularTotal();
+    orden.pagar(total);
+  }
+
+  static class MedioDePagoFactory {
+
+    static MedioDePago create(String paymentType) {
+      switch (paymentType) {
+        case "card":
+          return new PagoTarjeta("Juan Perez", "4111111111111111");
+        case "mp":
+          return new MercadoPago(MedioDePagoFactory.getMercadoPagoAPIKey());
+        default:
+          return new PagoEfectivo();
+      }
+    }
+
+    private static String getMercadoPagoAPIKey() {
+      return "user_and_pass";
+    }
   }
 
   // ===================== Dominio =====================
@@ -92,13 +130,21 @@ public class Checkout {
   // ===================== ORDER + OBSERVER =====================
 
   interface OrdenEventListener {
-    void onPaid(Orden order);
+    void onPaid(Orden order); // Se llama cuando la orden fue pagada
+
+    void onRejected(Orden order); // Se llama cuando la order fue rechazada
   }
 
   static class EmailListener implements OrdenEventListener {
     @Override
     public void onPaid(Orden order) {
-      System.out.println("[Email] Enviando comprobante a cliente. Total: $" + order.total());
+      System.out.println(
+          "[Email] Enviando comprobante a cliente. Total: $" + order.calcularTotal());
+    }
+
+    @Override
+    public void onRejected(Orden order) {
+      System.out.println("[Email] La orden fue rechazada por un problema en el pago.");
     }
   }
 
@@ -108,16 +154,97 @@ public class Checkout {
       System.out.println(
           "[Analytics] Registrando venta. Ítems: " + order.getCarrito().getItems().size());
     }
+
+    @Override
+    public void onRejected(Orden order) {
+      System.out.println("[Analytics] Registrando venta rechazada");
+    }
   }
 
-  static class Orden {
+  static class LoggingListener implements OrdenEventListener {
+    @Override
+    public void onPaid(Orden order) {
+      System.out.println("=== ORDER SUMMARY ===");
+      System.out.println("Items: " + order.carrito);
+      System.out.println("Subtotal: $" + order.carrito.subtotal());
+      System.out.println("TOTAL: $" + order.calcularTotal());
+    }
+
+    @Override
+    public void onRejected(Orden order) {
+      System.out.println("=== ORDER REJECTED SUMMARY ===");
+      System.out.println("Items: " + order.carrito);
+      System.out.println("Subtotal: $" + order.carrito.subtotal());
+      System.out.println("TOTAL: $" + order.calcularTotal());
+    }
+  }
+
+  interface IOrden {
+    public void addListener(OrdenEventListener l);
+
+    public void setMedioDePago(MedioDePago m);
+
+    public double calcularTotal();
+
+    public void pagar(double monto);
+  }
+
+  static class OrdenConEnvoltorioRegalo implements IOrden {
+    IOrden orden;
+
+    OrdenConEnvoltorioRegalo(IOrden orden) {
+      this.orden = orden;
+    }
+
+    public void addListener(OrdenEventListener l) {
+      this.orden.addListener(l);
+    }
+
+    public void setMedioDePago(MedioDePago m) {
+      this.orden.setMedioDePago(m);
+    }
+
+    public double calcularTotal() {
+      double total = this.orden.calcularTotal();
+      double totalActualizado = total + 5;
+      return totalActualizado;
+    }
+
+    public void pagar(double monto) {
+      this.orden.pagar(monto);
+    }
+  }
+
+  static class OrdenConEnvioExpress implements IOrden {
+    IOrden orden;
+
+    OrdenConEnvioExpress(IOrden orden) {
+      this.orden = orden;
+    }
+
+    public void addListener(OrdenEventListener l) {
+      this.orden.addListener(l);
+    }
+
+    public void setMedioDePago(MedioDePago m) {
+      this.orden.setMedioDePago(m);
+    }
+
+    public double calcularTotal() {
+      double total = this.orden.calcularTotal();
+      double totalActualizado = total + 10;
+      return totalActualizado;
+    }
+
+    public void pagar(double monto) {
+      this.orden.pagar(monto);
+    }
+  }
+
+  static class Orden implements IOrden {
     private final Carrito carrito;
     private final List<OrdenEventListener> listeners = new ArrayList<>();
     private MedioDePago paymentGateway;
-
-    // “Extras” modelados con flags (candidato a DECORATOR)
-    private boolean envoltorioRegalo; // +$5
-    private boolean envioExpress; // +$10
 
     public Orden(Carrito carrito) {
       this.carrito = carrito;
@@ -135,47 +262,36 @@ public class Checkout {
       this.paymentGateway = p;
     }
 
-    public void incluirEnvoltorio(boolean v) {
-      this.envoltorioRegalo = v;
-    }
-
-    public void incluirEnvioExpress(boolean v) {
-      this.envioExpress = v;
-    }
-
-    public double total() {
+    public double calcularTotal() {
       double total = carrito.subtotal();
-      // Costo extra hardcodeado (refactor -> DECORATOR sobre Product o sobre un "PricedComponent")
-      if (envoltorioRegalo) total += 5.0;
-      if (envioExpress) total += 10.0;
       return total;
     }
 
-    public void printSummary() {
-      System.out.println("=== ORDER SUMMARY ===");
-      System.out.println("Items: " + carrito);
-      System.out.println("Subtotal: $" + carrito.subtotal());
-      System.out.println("Envoltorio regalo: " + (envoltorioRegalo ? "Si (+$5)" : "No"));
-      System.out.println("Envio express: " + (envioExpress ? "Si (+$10)" : "No"));
-      System.out.println("TOTAL: $" + total());
-    }
-
-    public void pagar() {
+    public void pagar(double total) {
       if (paymentGateway == null) {
         System.out.println("No hay gateway de pago configurado.");
         return;
       }
-      boolean ok = paymentGateway.pay(total());
+      boolean ok = paymentGateway.pay(total);
       if (ok) {
-        System.out.println("Pago exitoso por $" + total());
+        System.out.println("Pago exitoso por $" + total);
         notifyPaid();
       } else {
         System.out.println("Pago rechazado.");
+        notifyRejected();
       }
     }
 
     private void notifyPaid() {
-      for (OrdenEventListener l : listeners) l.onPaid(this);
+      for (OrdenEventListener listener : this.listeners) {
+        listener.onPaid(this);
+      }
+    }
+
+    private void notifyRejected() {
+      for (OrdenEventListener listener : this.listeners) {
+        listener.onRejected(this);
+      }
     }
   }
 
@@ -215,12 +331,36 @@ public class Checkout {
     }
   }
 
+  static class MercadoPago implements MedioDePago {
+    private MercadoPagoAPI client;
+
+    public MercadoPago(String user_and_pass) {
+      this.client = new MercadoPagoAPI(user_and_pass);
+    }
+
+    public boolean pay(double amount) {
+      int amountInCents = (int) Math.round(amount * 100);
+      return client.runPayment(amountInCents);
+    }
+  }
+
   // ===================== API externa =====================
 
   /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */
   static class MercadoPagoAPI {
+    String user_and_pass = null; // ~contraseña
+
+    public MercadoPagoAPI(String user_and_pass) {
+      this.user_and_pass = user_and_pass;
+    }
+
     public boolean runPayment(int amountInCents) {
-      System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
+      System.out.println(
+          "[MercadoPagoAPI] Procesando "
+              + amountInCents
+              + " centavos... (con api key: "
+              + this.user_and_pass
+              + ")");
       // Lógica ficticia: acepta todo hasta 15.000 centavos (150.00)
       return amountInCents <= 15000;
     }
