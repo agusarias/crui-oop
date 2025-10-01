@@ -8,20 +8,41 @@ import java.util.List;
  * <p>Contestar a continuación las siguientes preguntas:
  *
  * <p>- Qué patrón de diseño podés identificar en el código dado?
+ * Uno de los patrones que se pueden identificar en el código es el patrón Singleton, implementado en la clase Database.
+ * Este patrón asegura que solo exista una instancia de la clase Database en toda la aplicación, proporcionando un punto de acceso global a esa instancia.
+ *
+ * Otro patrón que se puede identificar es el patrón Factory, implementado en la clase CreadorDeDoctores.
+ * Usa métodos estáticos para crear diferentes tipos de objetos Doctor, para no exponer la lógica de instanciación al cliente.
+ * 
+ * Otro patrón que se puede identificar es el patrón Observer, implementado en las clases Turno, Doctor y Paciente.
+ * Este patrón permite que los objetos se suscriban a eventos y sean notificados cuando esos eventos ocurren.
+ * 
+ * Otro patrón que se puede identificar es el patrón Strategy, implementado en la lógica de cálculo de precios y descuentos.
  *
  * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
- *
+ * Se podrían agregar los siguientes patrones de diseño para mejorar el código:
+ * 1. Patrón Strategy: Para manejar diferentes estrategias de cálculo de precios y descuentos.
+ * 2. Patrón Observer: Para manejar las notificaciones de cambios en los turnos de manera más flexible.
  * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
+
+ * Patrón strategy:
+ *  - Se podría crear una interfaz EstrategiaDePrecio con un método calcularPrecio(float precioBase).
+ *  - Luego, se podrían implementar diferentes estrategias de precios que utilicen esta interfaz.
+ *  - Por ejemplo, se podría tener una estrategia de precio para pacientes con OSDE, otra para IOMA, etc.
+ *  - De esta manera, se podría cambiar la estrategia de precios en tiempo de ejecución sin modificar el código del cliente.
+ * 
+ *
  */
 public class TurnosMedicos {
 
   public static void main(String[] args) {
-    System.out.println();
-    System.out.println("Turnos Medicos");
-    System.out.println("=============");
-    System.out.println();
+    
+    imprimirTurnos();
+    ejecutarEjemplo();
+  
+  }
+  private static void ejecutarEjemplo() {
     Database database = Database.getInstance();
-
     Paciente paciente = new Paciente("Ignacio Segovia", "OSDE", "isegovia@gmail.com");
     String especialidad = "Cardiología";
     Doctor doctor = database.getDoctor(especialidad);
@@ -31,52 +52,71 @@ public class TurnosMedicos {
       return;
     }
 
-    // Precio base en base a la especialidad
-    float precioBase;
-    if (doctor.especialidad.contiene("Cardiología")) {
-      precioBase = 8000;
-    } else if (doctor.especialidad.contiene("Neumonología")) {
-      precioBase = 7000;
-    } else if (doctor.especialidad.contiene("Kinesiología")) {
-      precioBase = 7000;
-    } else {
-      precioBase = 5000;
-    }
+    // Strategy para calcular precio
+    CalculadoraPrecio calculadora = new CalculadoraPrecioEstandar();
+    float precio = calculadora.calcularPrecio(doctor.especialidad.descripcion, paciente.obraSocial);
 
-    // Descuento en base a la obra social y la especialidad
-    float descuento;
-    switch (paciente.obraSocial) {
-      case "OSDE":
-        descuento =
-            doctor.especialidad.contiene("Cardiología")
-                ? 1f // 100% de descuento en cardiología
-                : 0.2f; // 20% de descuento
-        break;
-      case "IOMA":
-        descuento =
-            doctor.especialidad.contiene("Kinesiología")
-                ? 1f // 100% de descuento en kinesiología
-                : 0.15f; // 15% de descuento
-        break;
-      case "PAMI":
-        descuento = 1.0f; // 100% de descuento
-        break;
-      default:
-        descuento = 0.0f; // 0% de descuento
-        break;
-    }
-
-    // Aplico el descuento
-    float precio = precioBase - precioBase * descuento;
-
-    // Nuevo turno
+     // Nuevo turno
     Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
     System.out.println(turno);
 
     // Cambio de turno
     turno.setFechaYHora("2025-01-01 11:00");
+    System.out.println();}
+
+  public static void imprimirTurnos(){
     System.out.println();
+    System.out.println("Turnos Medicos");
+    System.out.println("=============");
+    System.out.println();
+
   }
+
+  // -----------------------------Patrón Strategy------------------------------------------
+  public interface CalculadoraPrecio {
+    float calcularPrecio(String especialidad, String obraSocial);
+  }
+  public static class CalculadoraPrecioEstandar implements CalculadoraPrecio {
+    @Override
+    public float calcularPrecio(String especialidad, String obraSocial) {
+      float precioBase = obtenerPrecioBase(especialidad);
+      float descuento = obtenerdescuento(especialidad, obraSocial);
+      return precioBase - (precioBase * descuento);
+    }
+
+    // Precio base en base a la especialidad
+    private float obtenerPrecioBase(String especialidad) {
+      if (especialidad.contains("Cardiología")) {
+        return 8000;
+      } else if (especialidad.contains("Neumonología")) {
+        return 7000;
+      } else if (especialidad.contains("Kinesiología")) {
+        return 7000;
+      } else {
+        return 5000;
+      }
+      }
+
+      // Descuento en base a la obra social y la especialidad
+    private float obtenerdescuento(String especialidad, String obraSocial) {
+      switch (obraSocial) {
+        case "OSDE":
+          return especialidad.contains("Cardiología")
+                  ? 1f // 100% de descuento en cardiología
+                  : 0.2f; // 20% de descuento
+        case "IOMA":
+          return especialidad.contains("Kinesiología")
+              ? 1f // 100% de descuento en kinesiología
+              : 0.15f; // 15% de descuento
+        case "PAMI":
+          return 1.0f; // 100% de descuento
+        default:
+          return 0.0f; // 0% de descuento
+      }
+      
+    }
+  }
+  // -----------------------------Fin Patrón Strategy------------------------------------------
 
   public static class Paciente {
     String nombre;
@@ -132,7 +172,6 @@ public class TurnosMedicos {
       this.especialidad = especialidad;
       this.email = email;
     }
-
     public void avisarCambioDeFechayHora(Turno turno) {
       System.out.println(
           "Mail para "
