@@ -27,7 +27,7 @@
         Los patrones de diseño que se ESTAN SE PUDEN IMPLEMENTAR son:
 
    Primero, antes de utilizar los patrones de diseños probables, voy a refactorizar el codigo para que quede mas limpiio y ordenado. 
-   STRATEGY: Implementando este patron en la logica de calcular precio y \*\*** metodos de pago.
+   STRATEGY: Implementando este patron en la logica de calcular precio y  metodos de pago.
    DECORATOR; OBSERVER en los turnos
    ########### RESPUESTA SEGUNDO PUNTO ############
    
