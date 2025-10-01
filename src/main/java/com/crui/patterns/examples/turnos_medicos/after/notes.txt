@@ -1,0 +1,13 @@
+Reconocido:
+    Factory.
+        Creador de Doctores permite crear doctores de diferentes especialidades.
+    Singleton.
+        Database representa una base de datos. getInstance se encarga que solo haya una instancia existente, y nuevos objetos retornan la misma instancia.
+    Observer.
+        Turno usa avisarCambioDeFechayHora, que da un pie para usar observers (No implementado).
+    Strategy.
+        Turnos Médicos (main) posee código a modo de Strategy, implementado directamente para definir precio base y descuentos según datos del paciente y especialidad del doctor.
+
+Añadido:
+    Strategy.
+        Turno ahora usa un implementación de getTotalPrecio que después es llamada en lo que actualmente es el main.
