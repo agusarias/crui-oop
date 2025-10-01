@@ -1,0 +1,18 @@
+** PREGUNTAS & RESPUESTAS ** by Jorge Marinoni - SharkTech.
+
+ * Turnos Medicos
+ *
+ * <p>Contestar a continuación las siguientes preguntas:
+ 
+ * <p>- Qué patrón de diseño podés identificar en el código dado?
+ * SINGLETON: En la clase "Database" garantizando una única instancia para acceder a la “base de datos” en * toda la app.
+ * FACTORY METHOD: En la clase "CreadorDeDoctores", centralizando la creación de todos los doctores según * la especialidad pre configurada.
+
+ * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
+ * BUILDER: Para la creación de turnos. Se podrían agregar validaciones y valores por defecto por ejemplo * en fecha y precio.
+ * STRATEGY: Para la lógica de precio base por especialidad y descuento por obra social. Cada obra social/* especialidad podría tener su estrategia propia.
+ * OBSERVER: Para el aviso de turnos, pudiendo agregar tanto canales de comunicación (mail, whatsapp, SMS, * etc) como sectores del establecimiento (administración, facturación, etc)
+ *
+ * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
+ * Se implementa BUILDER en TURNOS.
+ */

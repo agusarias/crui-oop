@@ -4,7 +4,16 @@ import java.util.*;
 
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * código dado? 
+ * 
+ * RESPUESTA:Observer (OrdenEventListener) y Strategy (MedioDePago)
+ * 
+ * Observer: Cuando se pagó la orden, varias cosas sucedan automáticamente (envía mail, registra la orden), sin que la orden conozca los detalles de cada cosa.
+ *
+ * Strategy: Hay varias formas intercambiables de pagar (efectivo, tarjeta, mercado-pago) que comparten un objetivo, pero cada una tiene su algoritmo.
+ *
+ * Qué patrón de diseño podrías agregar para mejorar el código?
+ * RESPUESTA: Decorator (para los extras de la orden, como envoltorio y envío express)
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
  */
@@ -114,7 +123,6 @@ public class Checkout {
     private final Carrito carrito;
     private final List<OrdenEventListener> listeners = new ArrayList<>();
     private MedioDePago paymentGateway;
-
     // “Extras” modelados con flags (candidato a DECORATOR)
     private boolean envoltorioRegalo; // +$5
     private boolean envioExpress; // +$10
