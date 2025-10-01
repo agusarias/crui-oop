@@ -16,8 +16,8 @@ import java.util.List;
  * 
  * Otro patrón que se puede identificar es el patrón Observer, implementado en las clases Turno, Doctor y Paciente.
  * Este patrón permite que los objetos se suscriban a eventos y sean notificados cuando esos eventos ocurren.
+ *
  * 
- * Otro patrón que se puede identificar es el patrón Strategy, implementado en la lógica de cálculo de precios y descuentos.
  *
  * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
  * Se podrían agregar los siguientes patrones de diseño para mejorar el código:
@@ -36,7 +36,7 @@ import java.util.List;
 public class TurnosMedicos {
 
   public static void main(String[] args) {
-    
+
     imprimirTurnos();
     ejecutarEjemplo();
   
