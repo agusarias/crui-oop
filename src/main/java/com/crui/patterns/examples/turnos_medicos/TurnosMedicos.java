@@ -20,7 +20,7 @@ public class TurnosMedicos {
     System.out.println("Turnos Medicos");
     System.out.println("=============");
     System.out.println();
-    Database database = Database.getInstance();
+    DataBase database = DataBase.getInstance();
 
     Paciente paciente = new Paciente("Ignacio Segovia", "OSDE", "isegovia@gmail.com");
     String especialidad = "Cardiología";
@@ -32,43 +32,42 @@ public class TurnosMedicos {
     }
 
     // Precio base en base a la especialidad
-    float precioBase;
-    if (doctor.especialidad.contiene("Cardiología")) {
-      precioBase = 8000;
-    } else if (doctor.especialidad.contiene("Neumonología")) {
-      precioBase = 7000;
-    } else if (doctor.especialidad.contiene("Kinesiología")) {
-      precioBase = 7000;
+    double precioBase;
+    if (doctor.getEspecialidad().contiene("Cardiología")) {
+      precioBase = 8000d;
+    } else if (doctor.getEspecialidad().contiene("Neumonología")) {
+      precioBase = 7000d;
+    } else if (doctor.getEspecialidad().contiene("Kinesiología")) {
+      precioBase = 7000d;
     } else {
-      precioBase = 5000;
+      precioBase = 5000d;
     }
 
     // Descuento en base a la obra social y la especialidad
-    float descuento;
-    switch (paciente.obraSocial) {
+    double descuento;
+    switch (paciente.getObraSocial()) {
       case "OSDE":
         descuento =
-            doctor.especialidad.contiene("Cardiología")
-                ? 1f // 100% de descuento en cardiología
-                : 0.2f; // 20% de descuento
+            doctor.getEspecialidad().contiene("Cardiología")
+                ? 1d // 100% de descuento en cardiología
+                : 0.2d; // 20% de descuento
         break;
       case "IOMA":
         descuento =
-            doctor.especialidad.contiene("Kinesiología")
-                ? 1f // 100% de descuento en kinesiología
-                : 0.15f; // 15% de descuento
+            doctor.getEspecialidad().contiene("Kinesiología")
+                ? 1d // 100% de descuento en kinesiología
+                : 0.15d; // 15% de descuento
         break;
       case "PAMI":
-        descuento = 1.0f; // 100% de descuento
+        descuento = 1.0d; // 100% de descuento
         break;
       default:
-        descuento = 0.0f; // 0% de descuento
+        descuento = 0.0d; // 0% de descuento
         break;
     }
 
     // Aplico el descuento
-    float precio = precioBase - precioBase * descuento;
-
+    double precio = precioBase - precioBase * descuento;
     // Nuevo turno
     Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
     System.out.println(turno);
@@ -76,167 +75,5 @@ public class TurnosMedicos {
     // Cambio de turno
     turno.setFechaYHora("2025-01-01 11:00");
     System.out.println();
-  }
-
-  public static class Paciente {
-    String nombre;
-    String obraSocial;
-    String email;
-
-    Paciente(String nombre, String obraSocial, String email) {
-      this.nombre = nombre;
-      this.obraSocial = obraSocial;
-      this.email = email;
-    }
-
-    public void avisarCambioDeFechayHora(Turno turno) {
-      System.out.println(
-          "Mail para "
-              + email
-              + ": El turno con "
-              + turno.doctor
-              + " se ha cambiado a "
-              + turno.fechaYHora);
-    }
-
-    @Override
-    public String toString() {
-      return nombre + " (" + obraSocial + ")";
-    }
-  }
-
-  public static class Especialidad {
-    String descripcion;
-
-    Especialidad(String descripcion) {
-      this.descripcion = descripcion;
-    }
-
-    public boolean contiene(String descripcion) {
-      return this.descripcion.contains(descripcion);
-    }
-
-    @Override
-    public String toString() {
-      return descripcion;
-    }
-  }
-
-  public static class Doctor {
-    String nombre;
-    Especialidad especialidad;
-    String email;
-
-    Doctor(String nombre, Especialidad especialidad, String email) {
-      this.nombre = nombre;
-      this.especialidad = especialidad;
-      this.email = email;
-    }
-
-    public void avisarCambioDeFechayHora(Turno turno) {
-      System.out.println(
-          "Mail para "
-              + email
-              + ": El turno para "
-              + turno.paciente
-              + " se ha cambiado a "
-              + turno.fechaYHora);
-    }
-
-    @Override
-    public String toString() {
-      return nombre + " (" + especialidad + ")";
-    }
-  }
-
-  public static class Turno {
-    private Paciente paciente;
-    private Doctor doctor;
-    private String fechaYHora;
-    private double precio;
-
-    public Turno(Paciente paciente, Doctor doctor, String fechaYHora, double precio) {
-      this.paciente = paciente;
-      this.doctor = doctor;
-      this.fechaYHora = fechaYHora;
-      this.precio = precio;
-    }
-
-    public void setFechaYHora(String fechaYHora) {
-      this.fechaYHora = fechaYHora;
-      this.avisarCambioDeFechayHora(this);
-    }
-
-    public void avisarCambioDeFechayHora(Turno turno) {
-      this.doctor.avisarCambioDeFechayHora(turno);
-      this.paciente.avisarCambioDeFechayHora(turno);
-    }
-
-    @Override
-    public String toString() {
-      return "Turno para " + paciente + " con " + doctor + " el " + fechaYHora + " - $" + precio;
-    }
-  }
-
-  public static class Database {
-    private static Database instance;
-    private List<Doctor> doctores;
-
-    private Database() {
-      this.doctores =
-          List.of(
-              CreadorDeDoctores.crearCardiologoGeneral("Dra. Girgenti Ana", "agirgenti@gmail.com"),
-              CreadorDeDoctores.crearNeumonologo("Dr. Jorge Gutierrez", "jgutierrez@gmail.com"),
-              CreadorDeDoctores.crearAlergista("Dra. Florencia Aranda", "faranda@gmail.com"),
-              CreadorDeDoctores.crearClinicoGeneral("Dr. Esteban Quiroga", "equiroga@gmail.com"),
-              CreadorDeDoctores.crearTraumatologo("Dr. Mario Gómez", "mgomez@gmail.com"));
-    }
-
-    public static Database getInstance() {
-      if (instance == null) {
-        instance = new Database();
-      }
-      return instance;
-    }
-
-    public List<Doctor> getDoctores() {
-      return doctores;
-    }
-
-    public Doctor getDoctor(String descripcionEspecialidad) {
-      for (Doctor doctor : doctores) {
-        if (doctor.especialidad.contiene(descripcionEspecialidad)) {
-          return doctor;
-        }
-      }
-      return null;
-    }
-  }
-
-  public static class CreadorDeDoctores {
-
-    public static Doctor crearCardiologoGeneral(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Cardiología > General"), email);
-    }
-
-    public static Doctor crearNeumonologo(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Neumonología > General"), email);
-    }
-
-    public static Doctor crearAlergista(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Neumonología > Alergias"), email);
-    }
-
-    public static Doctor crearKinesiologo(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Kinesiología > General"), email);
-    }
-
-    public static Doctor crearTraumatologo(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Kinesiología > Traumatología"), email);
-    }
-
-    public static Doctor crearClinicoGeneral(String nombre, String email) {
-      return new Doctor(nombre, new Especialidad("Clínica > General"), email);
-    }
   }
 }
