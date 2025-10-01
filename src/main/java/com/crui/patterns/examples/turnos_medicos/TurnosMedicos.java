@@ -289,7 +289,6 @@ public class TurnosMedicos {
               CreadorDeDoctores.crearTraumatologo("Dr. Mario Gómez", "mgomez@gmail.com"));
     }
 
-    // TODO: Se encuentra singleton
     public static Database getInstance() {
       if (instance == null) {
         instance = new Database();
