@@ -12,71 +12,196 @@ import java.util.List;
  * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
  *
  * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
+ * 
+ * 
+  * Se encuentra el patrón observer en las clases de paciente y doctor, las cuales se suscriben
+  a un turno, y al cambiar la fecha y hora del mismo, son notificados.
+
+  El patrón factory se encuentra al crear una instancia de un médico, ya sea cardiologo, 
+  neumonologo etc.
+
+  El patron singleton aparece cuando se accede a la instancia de la base de datos al principio del archivo.
+
+  Se puede agregar el patron decorator para manejar de mejor manera los costos, también puede
+  usarse el patron strategy.
+
+  El patron que decidi agregar es el de decorator para los precios de cada turno, en vez
+  de definirlo en el main, hay una interfaz y una clase creada para resolver los precios
+  especificos. Ademas decidi agregarle factory para calcular los costos de una mejor manera
  */
 public class TurnosMedicos {
 
-  public static void main(String[] args) {
-    System.out.println();
-    System.out.println("Turnos Medicos");
-    System.out.println("=============");
-    System.out.println();
-    Database database = Database.getInstance();
+public static void main(String[] args) {
 
+    System.out.println("--------------------");
+    
+    System.out.println("Turnos Medicos OESTE");
+
+    System.out.println("--------------------");
+    
+    Database database = Database.getInstance();
     Paciente paciente = new Paciente("Ignacio Segovia", "OSDE", "isegovia@gmail.com");
     String especialidad = "Cardiología";
     Doctor doctor = database.getDoctor(especialidad);
 
-    if (doctor == null) {
-      System.out.println("No se encontró el doctor para la especialidad: " + especialidad);
-      return;
-    }
+    Doctor doctor2 = database.getDoctor("Kinesiología");
 
-    // Precio base en base a la especialidad
-    float precioBase;
-    if (doctor.especialidad.contiene("Cardiología")) {
-      precioBase = 8000;
-    } else if (doctor.especialidad.contiene("Neumonología")) {
-      precioBase = 7000;
-    } else if (doctor.especialidad.contiene("Kinesiología")) {
-      precioBase = 7000;
-    } else {
-      precioBase = 5000;
-    }
+    Paciente paciente2 = new Paciente("Pepe Argento", "SIN_OBRA_SOCIAL", "pepe@gmail.com");
 
-    // Descuento en base a la obra social y la especialidad
-    float descuento;
-    switch (paciente.obraSocial) {
-      case "OSDE":
-        descuento =
-            doctor.especialidad.contiene("Cardiología")
-                ? 1f // 100% de descuento en cardiología
-                : 0.2f; // 20% de descuento
-        break;
-      case "IOMA":
-        descuento =
-            doctor.especialidad.contiene("Kinesiología")
-                ? 1f // 100% de descuento en kinesiología
-                : 0.15f; // 15% de descuento
-        break;
-      case "PAMI":
-        descuento = 1.0f; // 100% de descuento
-        break;
-      default:
-        descuento = 0.0f; // 0% de descuento
-        break;
-    }
+    // Aplico decorator
 
-    // Aplico el descuento
-    float precio = precioBase - precioBase * descuento;
+    double precioBase2 = CalculadoraDeCostos.getPrecioBase(doctor2.especialidad.descripcion);
+    
 
+    // Creo el componente base sin descuentos
+    double precioBase = CalculadoraDeCostos.getPrecioBase(doctor.especialidad.descripcion);
+    CostoTurno costo = new TurnoBase(precioBase); 
+
+    // Aplico el decorator y uso las instancias junto con el costo para calcular el descuento
+    costo = CalculadoraDeCostos.aplicarDescuento(costo, paciente, doctor);
+
+    CostoTurno costo2 = new TurnoBase(precioBase2);
+
+    costo2 = CalculadoraDeCostos.aplicarDescuento(costo2, paciente2, doctor2);
+    
     // Nuevo turno
-    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
+    // Paso el objeto 'costo' decorado directamente al turno
+    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", costo);
+
+    Turno turno2 = new Turno(paciente2, doctor2,"2025-01-01 10:00", costo2);
     System.out.println(turno);
+    System.out.println(turno2);
 
     // Cambio de turno
     turno.setFechaYHora("2025-01-01 11:00");
+
+    turno2.setFechaYHora("2026-08-02 09:00");
     System.out.println();
+}
+
+  // Interfaz para manejar los costos
+  public interface CostoTurno {
+  
+    double getCosto();
+    
   }
+
+
+
+  static class TurnoBase implements CostoTurno {
+    private double precioBase; 
+
+    public TurnoBase(double precioBase) {
+        this.precioBase = precioBase;
+    }
+
+    @Override
+    public double getCosto() {
+        return precioBase;
+    }
+}
+
+  static abstract class DescuentoDecorator implements CostoTurno {
+      protected CostoTurno costoTurnoDecorado;
+      protected Doctor doctor; 
+
+      public DescuentoDecorator(CostoTurno costoTurnoDecorado, Doctor doctor) {
+          this.costoTurnoDecorado = costoTurnoDecorado;
+          this.doctor = doctor;
+      }
+
+
+  }
+
+  static class DescuentoOSDE extends DescuentoDecorator {
+
+    public DescuentoOSDE(CostoTurno costoTurnoDecorado, Doctor doctor) {
+        super(costoTurnoDecorado, doctor);
+    }
+
+      @Override
+      public double getCosto() {
+          double costo = costoTurnoDecorado.getCosto();
+
+          // Aplico la lógica específica de OSDE
+          if (doctor.especialidad.contiene("Cardiología")) {
+              // 100% de descuento en Cardiología
+              return 0.0;
+          } else {
+              // 20% de descuento en el resto
+            return costo * 0.80;
+          }
+      }
+  }
+
+  static class DescuentoPAMI extends DescuentoDecorator {
+
+    public DescuentoPAMI(CostoTurno costoTurnoDecorado, Doctor doctor) {
+        super(costoTurnoDecorado, doctor);
+    }
+
+    @Override
+    public double getCosto() {
+        // 100% de descuento siempre porque PAMI es gratis
+        return 0.0;
+    }
+}
+
+static class DescuentoIOMA extends DescuentoDecorator {
+
+    public DescuentoIOMA(CostoTurno costoTurnoDecorado, Doctor doctor) {
+        super(costoTurnoDecorado, doctor);
+    }
+
+    @Override
+    public double getCosto() {
+        double costo = costoTurnoDecorado.getCosto();
+
+        // Aplico la lógica específica de IOMA
+        if (doctor.especialidad.contiene("Kinesiología")) {
+            // 100% de descuento en Kinesiología
+            return 0.0;
+        } else {
+            // 15% de descuento en el resto
+            return costo * 0.85; 
+        }
+    }
+}
+
+static class CalculadoraDeCostos {
+    
+    // Método auxiliar para obtener el precio base según la especialidad
+    public static double getPrecioBase(String especialidad) {
+        if (especialidad.contains("Cardiología")) {
+            return 8000;
+        } else if (especialidad.contains("Neumonología") || especialidad.contains("Kinesiología")) {
+            return 7000;
+        } else {
+            return 5000;
+        }
+    }
+    
+    // Uso el patron factory para separar la logica y ordenarla
+public static CostoTurno aplicarDescuento(CostoTurno costoBase, Paciente paciente, Doctor doctor) {
+    CostoTurno costoDecorado;
+    
+    switch (paciente.obraSocial) {
+        case "OSDE":
+            costoDecorado = new DescuentoOSDE(costoBase, doctor);
+            break;
+        case "IOMA":
+            costoDecorado = new DescuentoIOMA(costoBase, doctor);
+            break;
+        case "PAMI":
+            costoDecorado = new DescuentoPAMI(costoBase, doctor);
+            break;
+        default:
+            costoDecorado = costoBase; // no hay descuento
+            break;
+    }
+    return costoDecorado;
+}
+}
 
   public static class Paciente {
     String nombre;
@@ -153,30 +278,33 @@ public class TurnosMedicos {
     private Paciente paciente;
     private Doctor doctor;
     private String fechaYHora;
-    private double precio;
+    // Almaceno el costo en costoTurno
+    private CostoTurno costoTurno; 
 
-    public Turno(Paciente paciente, Doctor doctor, String fechaYHora, double precio) {
-      this.paciente = paciente;
-      this.doctor = doctor;
-      this.fechaYHora = fechaYHora;
-      this.precio = precio;
+    // Constructor modificado
+    public Turno(Paciente paciente, Doctor doctor, String fechaYHora, CostoTurno costoTurno) {
+        this.paciente = paciente;
+        this.doctor = doctor;
+        this.fechaYHora = fechaYHora;
+        this.costoTurno = costoTurno; 
     }
 
     public void setFechaYHora(String fechaYHora) {
-      this.fechaYHora = fechaYHora;
-      this.avisarCambioDeFechayHora(this);
+        this.fechaYHora = fechaYHora;
+        this.avisarCambioDeFechayHora(this);
     }
 
     public void avisarCambioDeFechayHora(Turno turno) {
-      this.doctor.avisarCambioDeFechayHora(turno);
-      this.paciente.avisarCambioDeFechayHora(turno);
+        this.doctor.avisarCambioDeFechayHora(turno);
+        this.paciente.avisarCambioDeFechayHora(turno);
     }
 
     @Override
     public String toString() {
-      return "Turno para " + paciente + " con " + doctor + " el " + fechaYHora + " - $" + precio;
+        // llamo a costo turno para obtener el costo
+        return "Turno para " + paciente + " con " + doctor + " el " + fechaYHora + " - $" + costoTurno.getCosto(); 
     }
-  }
+}
 
   public static class Database {
     private static Database instance;
