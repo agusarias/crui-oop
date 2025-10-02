@@ -1,6 +1,5 @@
 package com.crui.patterns.examples.turnos_medicos;
 
-import java.util.List;
 
 /**
  * Turnos Medicos
@@ -31,45 +30,24 @@ public class TurnosMedicos {
       return;
     }
 
-    // Precio base en base a la especialidad
-    double precioBase;
-    if (doctor.getEspecialidad().contiene("Cardiología")) {
-      precioBase = 8000d;
-    } else if (doctor.getEspecialidad().contiene("Neumonología")) {
-      precioBase = 7000d;
-    } else if (doctor.getEspecialidad().contiene("Kinesiología")) {
-      precioBase = 7000d;
-    } else {
-      precioBase = 5000d;
-    }
+    // Strategy: Pricing (precio base por especialidad)
+    PricingStrategy pricing = PricingStrategies.resolve(doctor);
+    double precioBase = pricing.calcularPrecioBase(doctor);
 
-    // Descuento en base a la obra social y la especialidad
-    double descuento;
-    switch (paciente.getObraSocial()) {
-      case "OSDE":
-        descuento =
-            doctor.getEspecialidad().contiene("Cardiología")
-                ? 1d // 100% de descuento en cardiología
-                : 0.2d; // 20% de descuento
-        break;
-      case "IOMA":
-        descuento =
-            doctor.getEspecialidad().contiene("Kinesiología")
-                ? 1d // 100% de descuento en kinesiología
-                : 0.15d; // 15% de descuento
-        break;
-      case "PAMI":
-        descuento = 1.0d; // 100% de descuento
-        break;
-      default:
-        descuento = 0.0d; // 0% de descuento
-        break;
-    }
+    // Strategy: Discount (descuento por obra social y especialidad)
+    DiscountStrategy discount = DiscountStrategies.resolve(paciente, doctor);
+    double descuento = discount.calcularDescuento(paciente, doctor);
 
     // Aplico el descuento
-    double precio = precioBase - precioBase * descuento;
-    // Nuevo turno
-    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
+    double precioConDescuento = precioBase - precioBase * descuento;
+
+    // Strategy: Payment (medio de pago). Por defecto, EFECTIVO
+    String medioDePago = "EFECTIVO"; // cambiar a "TARJETA" o "BILLETERA" si se desea
+    PaymentStrategy payment = PaymentStrategies.resolve(medioDePago);
+    double precioFinal = payment.aplicarPago(precioConDescuento);
+
+    // Nuevo turno con precio final
+    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precioFinal);
     System.out.println(turno);
 
     // Cambio de turno
