@@ -3,10 +3,22 @@ package com.crui.patterns.examples.checkout.before;
 import java.util.*;
 
 /**
- * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
- * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * Contestar a continuación las siguientes preguntas: 
+ * - Qué patrón de diseño podés identificar en el código dado? 
+ *    Observer: Se utiliza este patrón para agregar clases suscriptoras que escuchen lo que pase en Orden
+ *              para poder notificar en distintos servicios de lo sucedido respecto a las instancias de Orden. 
+ * 
+ *    Strategy: Se utiliza este patrón para poder determinar la forma a proceder según el método de pago elegido,
+ *              sin importar la estrategia se manejará de forma general esperando un objeto que implemente la interfaz MedioDePago, 
+ *              internamente implementará el método sobreescrito en su clase. 
+ *              De esta manera, podemos agregar métodos de pago modularmente permitiendo obtener un desarrollo más limpio.
+ * 
+ * - Qué patrón de diseño podrías agregar para mejorar el código?
+ *    Decorator: Podría usar el patrón para manejar funcionalidades adicionales de la Orden
+ *    Factory: Podría agregarse para encapsular la creación del MedioDePago
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
+ *    Implementé Adapter para integrar la MercadoPagoAPI
  */
 public class Checkout {
 
@@ -27,10 +39,12 @@ public class Checkout {
     orden.addListener(new EmailListener());
     orden.addListener(new AnalyticsListener());
 
-    String paymentType = "card"; // puede ser "cash", "card", "mercado-pago"
+    String paymentType = "mercado-pago"; // puede ser "cash", "card", "mercado-pago"
     MedioDePago medioDePago;
-    if ("card".equalsIgnoreCase(paymentType)) {
+    if ("card".equalsIgnoreCase(paymentType)) { 
       medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
+    } else if ("mercado-pago".equalsIgnoreCase(paymentType)){
+      medioDePago = new PagoMercadoPago();
     } else {
       medioDePago = new PagoEfectivo();
     }
@@ -78,9 +92,9 @@ public class Checkout {
     }
 
     public double subtotal() {
-      double s = 0;
-      for (Producto p : items) s += p.getPrecio();
-      return s;
+      double subtotal = 0;
+      for (Producto producto : items) subtotal += producto.getPrecio();
+      return subtotal;
     }
 
     @Override
@@ -174,7 +188,7 @@ public class Checkout {
       }
     }
 
-    private void notifyPaid() {
+    private void notifyPaid() { 
       for (OrdenEventListener l : listeners) l.onPaid(this);
     }
   }
@@ -215,9 +229,18 @@ public class Checkout {
     }
   }
 
+  // Uso Adapter que permite traducir el método pay() que pide la interfaz al método runPayment() que pide la API
+  static class PagoMercadoPago implements MedioDePago {
+    private final MercadoPagoAPI api = new MercadoPagoAPI();
+    public boolean pay(double amount) {
+      int amountInCents = (int) Math.round(amount * 100);
+      return api.runPayment(amountInCents);
+    }
+  }
+
   // ===================== API externa =====================
 
-  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */
+  /** Esta API de pagos es externa y no podemos modificarla. Falta integrarla */ 
   static class MercadoPagoAPI {
     public boolean runPayment(int amountInCents) {
       System.out.println("[MercadoPagoAPI] Procesando " + amountInCents + " centavos...");
@@ -225,4 +248,5 @@ public class Checkout {
       return amountInCents <= 15000;
     }
   }
+
 }
