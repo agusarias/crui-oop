@@ -8,10 +8,24 @@ import java.util.List;
  * <p>Contestar a continuación las siguientes preguntas:
  *
  * <p>- Qué patrón de diseño podés identificar en el código dado?
+ * 
+ * Singleton → Database (garantiza que hay una única instancia de la base de datos, tiene el construcor privado y el método getInstance() que devuelve la única instancia)
+ * factory → CreadorDeDoctores (Encapsula la creación de doctores según la especialidad y esto evita que se repita el código)
+ * Observer → TurnosMedicos (Cuando se cambia la fecha y hora en turnos se notifica a los observadores, en caso de agregar otros observadores como por ejemplo whatsapp se agraga observadores)
+ * 
  *
  * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
+ * 
+ * strategy → para encapsular el cálculo del precio base según la especialidad y para encapsular el cálculo del descuento según la obra social
+ * Observer → para que Turno no conozca a Paciente ni Doctor directamente (separar turno de paciente y dortor).
+ * Builder → se pasan muchos parametros a Turno, se puede utilizar builder para simplificar la creación de turnos y que el constructor no sea tan largo.
+ * Adapter  → Si el sistema tuviera que conectarse a una API externa de pagos o de historias clínicas.
+ * 
  *
  * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
+ * se Implementa strategy en precio base y descuento; 
+ * 
+ * 
  */
 public class TurnosMedicos {
 
@@ -31,40 +45,17 @@ public class TurnosMedicos {
       return;
     }
 
-    // Precio base en base a la especialidad
-    float precioBase;
-    if (doctor.especialidad.contiene("Cardiología")) {
-      precioBase = 8000;
-    } else if (doctor.especialidad.contiene("Neumonología")) {
-      precioBase = 7000;
-    } else if (doctor.especialidad.contiene("Kinesiología")) {
-      precioBase = 7000;
-    } else {
-      precioBase = 5000;
-    }
+ // Precio base en base a la especialidad
+    //**strategy** encapsula el precio base según la especialidad 
 
-    // Descuento en base a la obra social y la especialidad
-    float descuento;
-    switch (paciente.obraSocial) {
-      case "OSDE":
-        descuento =
-            doctor.especialidad.contiene("Cardiología")
-                ? 1f // 100% de descuento en cardiología
-                : 0.2f; // 20% de descuento
-        break;
-      case "IOMA":
-        descuento =
-            doctor.especialidad.contiene("Kinesiología")
-                ? 1f // 100% de descuento en kinesiología
-                : 0.15f; // 15% de descuento
-        break;
-      case "PAMI":
-        descuento = 1.0f; // 100% de descuento
-        break;
-      default:
-        descuento = 0.0f; // 0% de descuento
-        break;
-    }
+    // ------------------- STRATEGY: PRECIO BASE -------------------
+    PrecioBaseStrategy precioBaseStrategy = new PrecioBasePorEspecialidad();
+    float precioBase = precioBaseStrategy.calcularPrecioBase(doctor);
+
+    // ------------------- STRATEGY: DESCUENTO -------------------
+    DescuentoStrategy descuentoStrategy = new DescuentoPorObraSocial();
+    float descuento = descuentoStrategy.calcularDescuento(paciente, doctor);
+
 
     // Aplico el descuento
     float precio = precioBase - precioBase * descuento;
@@ -76,6 +67,49 @@ public class TurnosMedicos {
     // Cambio de turno
     turno.setFechaYHora("2025-01-01 11:00");
     System.out.println();
+  }
+
+ // Descuento en base a la obra social y la especialidad
+  //**strategy** ya que si se agrega otra obra social hay que modificar main.
+  
+  // ------------------- STRATEGY: PRECIO BASE -------------------
+  interface PrecioBaseStrategy {
+    float calcularPrecioBase(Doctor doctor);
+  }
+  static class PrecioBasePorEspecialidad implements PrecioBaseStrategy {
+    @Override
+    public float calcularPrecioBase(Doctor doctor) {
+      if (doctor.especialidad.contiene("Cardiología")) {
+        return 8000;
+      } else if (doctor.especialidad.contiene("Neumonología")) {
+        return 7000;
+      } else if (doctor.especialidad.contiene("Kinesiología")) {
+        return 7000;
+      } else {
+        return 5000;
+      }
+    }
+  }
+
+  // ------------------- STRATEGY: DESCUENTO -------------------
+  interface DescuentoStrategy {
+    float calcularDescuento(Paciente paciente, Doctor doctor);
+  }
+
+  static class DescuentoPorObraSocial implements DescuentoStrategy {
+    @Override
+    public float calcularDescuento(Paciente paciente, Doctor doctor) {
+      switch (paciente.obraSocial) {
+        case "OSDE":
+          return doctor.especialidad.contiene("Cardiología") ? 1f : 0.2f;
+        case "IOMA":
+          return doctor.especialidad.contiene("Kinesiología") ? 1f : 0.15f;
+        case "PAMI":
+          return 1.0f;
+        default:
+          return 0.0f;
+      }
+    }
   }
 
   public static class Paciente {
@@ -148,7 +182,8 @@ public class TurnosMedicos {
       return nombre + " (" + especialidad + ")";
     }
   }
-
+   //**podria aplicarse Builder y observer **
+   
   public static class Turno {
     private Paciente paciente;
     private Doctor doctor;
@@ -162,6 +197,7 @@ public class TurnosMedicos {
       this.precio = precio;
     }
 
+  //**Observer**
     public void setFechaYHora(String fechaYHora) {
       this.fechaYHora = fechaYHora;
       this.avisarCambioDeFechayHora(this);
@@ -177,7 +213,7 @@ public class TurnosMedicos {
       return "Turno para " + paciente + " con " + doctor + " el " + fechaYHora + " - $" + precio;
     }
   }
-
+  //**Singleton**
   public static class Database {
     private static Database instance;
     private List<Doctor> doctores;
@@ -213,6 +249,7 @@ public class TurnosMedicos {
     }
   }
 
+//**factory**
   public static class CreadorDeDoctores {
 
     public static Doctor crearCardiologoGeneral(String nombre, String email) {
