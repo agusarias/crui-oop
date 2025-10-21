@@ -1,0 +1,3 @@
+class StrategyPrecio:
+    def getTotalPrecio(self):
+        ...
