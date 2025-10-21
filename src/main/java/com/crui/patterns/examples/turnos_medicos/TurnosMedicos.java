@@ -5,13 +5,27 @@ import java.util.List;
 /**
  * Turnos Medicos
  *
- * <p>Contestar a continuación las siguientes preguntas:
+ * <p>
+ * Contestar a continuación las siguientes preguntas:
  *
- * <p>- Qué patrón de diseño podés identificar en el código dado?
+ * <p>
+ * - Qué patrón de diseño podés identificar en el código dado?
+ * al final en el codigo tenemos CreadorDeDoctores,
+ * que es un Factory Method, que expone diferentes
+ * formas de crear doctores con diferentes especialidades
  *
- * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
+ * y tenemos un Singleton en Database porque necesitas
+ * una instancia de base de datos compartida para toda la aplicacion
  *
- * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
+ * <p>
+ * - Qué patrones de diseño se podrían agregar para mejorar el código?
+ * Podriamos usar Strategy para los diferentes calculo de los precio, me di
+ * cuenta que para poder implementar las estrageias
+ * estaria bueno poder tener creado el turno pero ir paso a paso, para eso
+ * podemos aplicar Builder
+ *
+ * <p>
+ * Implementar uno o más de estos patrones adicionales para mejorar el código.
  */
 public class TurnosMedicos {
 
@@ -25,38 +39,37 @@ public class TurnosMedicos {
     Paciente paciente = new Paciente("Ignacio Segovia", "OSDE", "isegovia@gmail.com");
     String especialidad = "Cardiología";
     Doctor doctor = database.getDoctor(especialidad);
+    com.crui.patterns.examples.turnos_medicos.TurnosMedicos.Turno.TurnoBuilder builder = new Turno.TurnoBuilder()
+        .setDoctor(doctor)
+        .setPaciente(paciente);
 
     if (doctor == null) {
       System.out.println("No se encontró el doctor para la especialidad: " + especialidad);
       return;
     }
 
-    // Precio base en base a la especialidad
-    float precioBase;
     if (doctor.especialidad.contiene("Cardiología")) {
-      precioBase = 8000;
+      builder.setPrecio(8000);
     } else if (doctor.especialidad.contiene("Neumonología")) {
-      precioBase = 7000;
+      builder.setPrecio(7000);
     } else if (doctor.especialidad.contiene("Kinesiología")) {
-      precioBase = 7000;
+      builder.setPrecio(7000);
     } else {
-      precioBase = 5000;
+      builder.setPrecio(5000);
     }
 
     // Descuento en base a la obra social y la especialidad
     float descuento;
     switch (paciente.obraSocial) {
       case "OSDE":
-        descuento =
-            doctor.especialidad.contiene("Cardiología")
-                ? 1f // 100% de descuento en cardiología
-                : 0.2f; // 20% de descuento
+        descuento = doctor.especialidad.contiene("Cardiología")
+            ? 1f // 100% de descuento en cardiología
+            : 0.2f; // 20% de descuento
         break;
       case "IOMA":
-        descuento =
-            doctor.especialidad.contiene("Kinesiología")
-                ? 1f // 100% de descuento en kinesiología
-                : 0.15f; // 15% de descuento
+        descuento = doctor.especialidad.contiene("Kinesiología")
+            ? 1f // 100% de descuento en kinesiología
+            : 0.15f; // 15% de descuento
         break;
       case "PAMI":
         descuento = 1.0f; // 100% de descuento
@@ -67,10 +80,14 @@ public class TurnosMedicos {
     }
 
     // Aplico el descuento
-    float precio = precioBase - precioBase * descuento;
+    // float precio = precioBase - precioBase * descuento;
 
     // Nuevo turno
-    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
+    // Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
+    Turno turno = builder
+        .setFechaYHora("2025-01-01 10:00")
+        .setPrecio(builder.precio - builder.precio * descuento)
+        .build();
     System.out.println(turno);
 
     // Cambio de turno
@@ -155,11 +172,18 @@ public class TurnosMedicos {
     private String fechaYHora;
     private double precio;
 
-    public Turno(Paciente paciente, Doctor doctor, String fechaYHora, double precio) {
-      this.paciente = paciente;
-      this.doctor = doctor;
-      this.fechaYHora = fechaYHora;
-      this.precio = precio;
+    // private Turno(Paciente paciente, Doctor doctor, String fechaYHora, double
+    // precio) {
+    // this.paciente = paciente;
+    // this.doctor = doctor;
+    // this.fechaYHora = fechaYHora;
+    // this.precio = precio;
+    // }
+    private Turno(TurnoBuilder builder) {
+      this.paciente = builder.paciente;
+      this.doctor = builder.doctor;
+      this.fechaYHora = builder.fechaYHora;
+      this.precio = builder.precio;
     }
 
     public void setFechaYHora(String fechaYHora) {
@@ -176,6 +200,42 @@ public class TurnosMedicos {
     public String toString() {
       return "Turno para " + paciente + " con " + doctor + " el " + fechaYHora + " - $" + precio;
     }
+
+    public static class TurnoBuilder {
+      private Paciente paciente;
+      private Doctor doctor;
+      private String fechaYHora;
+      private double precio;
+
+      public TurnoBuilder setPaciente(Paciente paciente) {
+        this.paciente = paciente;
+        return this;
+      }
+
+      public TurnoBuilder setDoctor(Doctor doctor) {
+        this.doctor = doctor;
+        return this;
+      }
+
+      public TurnoBuilder setFechaYHora(String fechaYHora) {
+        this.fechaYHora = fechaYHora;
+        return this;
+      }
+
+      public TurnoBuilder setPrecio(double precio) {
+        this.precio = precio;
+        return this;
+      }
+
+      public Turno build() {
+        return new Turno(this);
+      }
+    }
+
+    public void setPrecio(double precio) {
+      this.precio = precio;
+    }
+
   }
 
   public static class Database {
@@ -183,13 +243,12 @@ public class TurnosMedicos {
     private List<Doctor> doctores;
 
     private Database() {
-      this.doctores =
-          List.of(
-              CreadorDeDoctores.crearCardiologoGeneral("Dra. Girgenti Ana", "agirgenti@gmail.com"),
-              CreadorDeDoctores.crearNeumonologo("Dr. Jorge Gutierrez", "jgutierrez@gmail.com"),
-              CreadorDeDoctores.crearAlergista("Dra. Florencia Aranda", "faranda@gmail.com"),
-              CreadorDeDoctores.crearClinicoGeneral("Dr. Esteban Quiroga", "equiroga@gmail.com"),
-              CreadorDeDoctores.crearTraumatologo("Dr. Mario Gómez", "mgomez@gmail.com"));
+      this.doctores = List.of(
+          CreadorDeDoctores.crearCardiologoGeneral("Dra. Girgenti Ana", "agirgenti@gmail.com"),
+          CreadorDeDoctores.crearNeumonologo("Dr. Jorge Gutierrez", "jgutierrez@gmail.com"),
+          CreadorDeDoctores.crearAlergista("Dra. Florencia Aranda", "faranda@gmail.com"),
+          CreadorDeDoctores.crearClinicoGeneral("Dr. Esteban Quiroga", "equiroga@gmail.com"),
+          CreadorDeDoctores.crearTraumatologo("Dr. Mario Gómez", "mgomez@gmail.com"));
     }
 
     public static Database getInstance() {
