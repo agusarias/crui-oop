@@ -1,5 +1,4 @@
-package com.crui.patterns.behavioral.strategy;
-
+package com.crui.patterns.behavioral.strategy.carrito;
 
 public class DescuentoPorTemporada implements DescuentoInterfaz {
     private static final double PORCENTAJE_DESCUENTO = 0.20;
