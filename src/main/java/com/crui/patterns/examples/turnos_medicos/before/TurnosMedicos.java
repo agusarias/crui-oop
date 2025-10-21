@@ -1,4 +1,4 @@
-package com.crui.patterns.examples.turnos_medicos;
+package com.crui.patterns.examples.turnos_medicos.before;
 
 import java.util.List;
 
