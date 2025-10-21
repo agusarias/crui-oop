@@ -8,9 +8,24 @@ import java.util.List;
  * <p>Contestar a continuación las siguientes preguntas:
  *
  * <p>- Qué patrón de diseño podés identificar en el código dado?
- *
+ * Patrones identificados:
+ * SINGLETON porque en la clase database utiliza getInstance() para que haya una unica instancia de la base de datos 
+ * en toda la aplicación, permitiendo evitar crear varias listas de doctores.
+ * Tambien está presente el patrón FACTORY, que puede identificarse en la clase CreadorDeDoctores usando metodos 
+ * para crear los doctores segun especialidad, por lo tanto está centralizando la logica de creación en 
+ * un solo lugar.
+ * Por último también se utiliza el patron OBSERVER en la clase de Turno, la cual tiene el método 
+ * avisarCambioDeFechaYHora, turno está funcionando como sujeto y Medico y Paciente son los escuchadores.
+ * 
  * <p>- Qué patrones de diseño se podrían agregar para mejorar el código?
- *
+ *Se puede incorporar STRATEGY y DECORATOR. El patrón que se agrega en este caso es Strategy, para resolver la 
+ falta de cumplimiento con el Principio de Responsabilidad única y hacer el código más extensible.
+ Decorator se podría utilizar para el caso de que se quieran agregar extras respecto del turno(Por ej:
+ consulta virtual)
+ NOTA IMPORTANTE: Lo que hago es crear dos interfaces que describen comportamientos distintos necesarios para que las 
+ estrategias concretas lo implementen (Dejo señalada la versión original del código y debajo la versión nueva utilizando el patrón 
+ para dejar visible el problema que se resuelve, el calculo de precioBase y de Descuento).
+
  * <p>Implementar uno o más de estos patrones adicionales para mejorar el código.
  */
 public class TurnosMedicos {
@@ -31,6 +46,11 @@ public class TurnosMedicos {
       return;
     }
 
+    // ===========================================================================
+    // VERSION ORIGINAL (sin patrón)
+    //Está mezclando dos lógicas distintas y utiliza mucho if y switch haciendo el 
+    //código menos extensible. Podría mejorarse y limpiar el main.
+    // ===========================================================================
     // Precio base en base a la especialidad
     float precioBase;
     if (doctor.especialidad.contiene("Cardiología")) {
@@ -66,16 +86,70 @@ public class TurnosMedicos {
         break;
     }
 
-    // Aplico el descuento
+    // En version original se aplica el descuento (por el uso del patron queda sin uso)
     float precio = precioBase - precioBase * descuento;
 
+    // ====================================================================================
+    // VERSION UTILIZANDO EL PATRON  STRATEGY
+    //Se separa la lógica de precio y de descuento.
+    //Se puede agregar nuevas reglas sin tocar este código, solo creando nuevas estrategias.
+    // ===================================================================================
+    PrecioStrategy precioStrategy = new PrecioPorEspecialidadStrategy();
+    DescuentoStrategy descuentoStrategy = new DescuentoPorObraSocialStrategy();
+
+    float precioBaseStrategy = precioStrategy.calcularPrecioBase(doctor);
+    float descuentoStrategyValor = descuentoStrategy.calcularDescuento(paciente, doctor);
+    float precioFinalStrategy = precioBaseStrategy - precioBaseStrategy * descuentoStrategyValor;
+    // ================================
+
     // Nuevo turno
-    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precio);
+    Turno turno = new Turno(paciente, doctor, "2025-01-01 10:00", precioFinalStrategy);
     System.out.println(turno);
 
     // Cambio de turno
     turno.setFechaYHora("2025-01-01 11:00");
     System.out.println();
+  }
+
+//========================================================
+  // DOS INTERFACES DE ESTRATEGIA PARA DOS COMPORTAMIENTOS
+//=======================================================
+  interface PrecioStrategy {
+    float calcularPrecioBase(Doctor doctor);
+  }
+
+  interface DescuentoStrategy {
+    float calcularDescuento(Paciente paciente, Doctor doctor);
+  }
+//======================================================================
+  // ESTABLEZCO DOS IMPLEMENTACIONES CONCRETAS QUE UTILIZAN LA INTERFAZ
+//======================================================================
+  //IMPLEMENTACION 1: encapsulo la lógica de precios por especialidad
+  static class PrecioPorEspecialidadStrategy implements PrecioStrategy {
+    @Override
+    public float calcularPrecioBase(Doctor doctor) {
+      if (doctor.especialidad.contiene("Cardiología")) return 8000;
+      if (doctor.especialidad.contiene("Neumonología")) return 7000;
+      if (doctor.especialidad.contiene("Kinesiología")) return 7000;
+      return 5000;
+    }
+  }
+  //IMPLEMENTACION 2: centralizo la lógica de descuentos para que se más fácil
+  //modificar en el futuro.
+  static class DescuentoPorObraSocialStrategy implements DescuentoStrategy {
+    @Override
+    public float calcularDescuento(Paciente paciente, Doctor doctor) {
+      switch (paciente.obraSocial) {
+        case "OSDE":
+          return doctor.especialidad.contiene("Cardiología") ? 1f : 0.2f;
+        case "IOMA":
+          return doctor.especialidad.contiene("Kinesiología") ? 1f : 0.15f;
+        case "PAMI":
+          return 1.0f;
+        default:
+          return 0.0f;
+      }
+    }
   }
 
   public static class Paciente {
