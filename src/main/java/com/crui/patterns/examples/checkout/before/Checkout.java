@@ -5,6 +5,13 @@ import java.util.*;
 /**
  * Contestar a continuación las siguientes preguntas: - Qué patrón de diseño podés identificar en el
  * código dado? - Qué patrón de diseño podrías agregar para mejorar el código?
+ * 
+ * Los patrones de diseño que podemos identificar son el patrón Observer que ejecuta distintos mecanismos (los listeners),
+ * distintos eventos cuando se ejecuta la compra, y el otro patrón es el Strategy que a través de una interfaz se implementan
+ * distintos métodos de pago.
+ * 
+ * Implementé el patrón de FactoryMethod para poder generar un lógica a través de una interfaz, poder crear una clase padre 
+ * para generar métodos de pago, y que las clases hijas implementen el método correspondiente al método de pago seleccionado.
  *
  * <p>Implementar UN patrón adicional para mejorar el código.
  */
@@ -28,13 +35,25 @@ public class Checkout {
     orden.addListener(new AnalyticsListener());
 
     String paymentType = "card"; // puede ser "cash", "card", "mercado-pago"
-    MedioDePago medioDePago;
+    /**MedioDePago medioDePago;
     if ("card".equalsIgnoreCase(paymentType)) {
       medioDePago = new PagoTarjeta("Juan Perez", "4111111111111111");
     } else {
       medioDePago = new PagoEfectivo();
     }
-    orden.setMedioDePago(medioDePago);
+    orden.setMedioDePago(medioDePago);*/
+
+    PagoFactory factory;
+
+        if ("card".equalsIgnoreCase(paymentType)) {
+            factory = new PagoTarjetaFactory("Juan Perez", "4111111111111111");
+        } else {
+            factory = new PagoEfectivoFactory();
+        }
+
+        MedioDePago medioDePago = factory.crearMedioDePago();
+
+        orden.setMedioDePago(medioDePago);
 
     // Muestra totales y paga
     orden.printSummary();
@@ -214,6 +233,72 @@ public class Checkout {
       return cardNumber.substring(cardNumber.length() - 4);
     }
   }
+
+  // ===================== FactoryMethod (Medios de pago) =====================
+
+
+  static abstract class PagoFactory {
+    public abstract MedioDePago crearMedioDePago();
+}
+
+static class PagoEfectivoFactory extends PagoFactory {
+    @Override
+    public MedioDePago crearMedioDePago() {
+        return new PagoEfectivo();
+    }
+}
+
+static class PagoTarjetaFactory extends PagoFactory {
+    private final String holder;
+    private final String cardNumber;
+
+    public PagoTarjetaFactory(String holder, String cardNumber) {
+        this.holder = holder;
+        this.cardNumber = cardNumber;
+    }
+
+    @Override
+    public MedioDePago crearMedioDePago() {
+        return new PagoTarjeta(holder, cardNumber);
+    }
+}
+
+  // ===================== Adapter + FactoryMethod (API externa) =====================
+  
+  static class PagoMercadoPagoAdapter implements MedioDePago {
+    private final MercadoPagoAPI api;
+
+    public PagoMercadoPagoAdapter(MercadoPagoAPI api) {
+      this.api = api;
+    }
+
+    @Override
+    public boolean pay(double monto) {
+      int amountInCents = (int) Math.round(monto * 100);
+      boolean ok = api.runPayment(amountInCents);
+
+      if (ok) {
+        System.out.println("[MercadoPagoAdapter] Pago exitoso con MercadoPago por $" + monto);
+      } else {
+        System.out.println("[MercadoPagoAdapter] Pago rechazado por MercadoPago");
+      }
+      return ok;
+    }
+  }
+
+  static class PagoMercadoPagoFactory extends PagoFactory {
+    private final MercadoPagoAPI api;
+
+    public PagoMercadoPagoFactory(MercadoPagoAPI api) {
+      this.api = api;
+    }
+
+    @Override
+    public MedioDePago crearMedioDePago() {
+      return new PagoMercadoPagoAdapter(api);
+    }
+  }
+
 
   // ===================== API externa =====================
 
